@@ -1,5 +1,3 @@
-# coding: utf-8
-
 # === Setting section ===
 # ROOT_PATH = '/Users/jmatsuzaki/Dropbox/Knowledge/Zettelkasten' # set your Zettelkasten's absolute path
 ROOT_PATH = '/Users/jmatsuzaki/Desktop/Ztest' # set your Zettelkasten's absolute path
@@ -28,6 +26,17 @@ EXECUTION_FUNCTION_LIST = {
 
 # === Start the process ===
 import sys, shutil, os, datetime, re
+# setup logger
+import logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.FileHandler("debug.log"),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
 def get_files(type):
     '''Retrieves a file of the specified type'''
@@ -53,30 +62,30 @@ def get_files(type):
 
 def check_and_create_yfm(files):
     '''If there is no YFM, create one.'''
-    print('\n====== Start Check YFM ======')
-    print('the target is: ' + str(len(files)) + ' files\n')
+    logger.debug('====== Start Check YFM ======')
+    logger.debug('the target is: ' + str(len(files)) + ' files\n')
     update_yfm_files = [] # if note have YFM
     create_yfm_files = [] # if note doesn't have YFM
     # check and classify files by exists YFM
     for file in files:
-        print('Checking YFM...')
-        print("target: " + file)
+        logger.debug('Checking YFM...')
+        logger.debug("target: " + file)
         # create target file list
         with open(file) as f:
             # check for the exist of YFM
             lines = f.readline().rstrip('\n')
             if lines == '---':
                 update_yfm_files.append(file)
-                print("Have already YFM")
+                logger.debug("Have already YFM")
             else: 
                 create_yfm_files.append(file)
-                print("No YFM yet")
-    print('\n====== Start Update YFM ======')
-    print('the target is: ' + str(len(update_yfm_files)) + ' files\n')
+                logger.debug("No YFM yet")
+    logger.debug('====== Start Update YFM ======')
+    logger.debug('the target is: ' + str(len(update_yfm_files)) + ' files\n')
     processing_file_cnt = 0 # Counting the number of files processed
     for update_yfm_file in update_yfm_files:
-        print("Updating YFM...")
-        print("target: " + update_yfm_file)
+        logger.debug("Updating YFM...")
+        logger.debug("target: " + update_yfm_file)
         this_YFM = YFM
         check_YFM = {
             "title": False,
@@ -132,21 +141,21 @@ def check_and_create_yfm(files):
             writing_lines_without_hashtags(update_yfm_file, lines)
             # Count the number of files processed.
             if update_flg:
-                print("update YFM!")
+                logger.debug("update YFM!")
                 processing_file_cnt += 1
             else:
-                print("There is no YFM to update")
-    print(str(processing_file_cnt) + ' files have been updated!\n')
-    print('\n====== Start Add New YFM ======')
-    print('the target is: ' + str(len(create_yfm_files)) + ' files\n')
+                logger.debug("There is no YFM to update")
+    logger.debug(str(processing_file_cnt) + ' files have been updated!\n')
+    logger.debug('====== Start Add New YFM ======')
+    logger.debug('the target is: ' + str(len(create_yfm_files)) + ' files\n')
     processing_file_cnt = 0 # Counting the number of files processed
     for create_yfm_file in create_yfm_files:
-        print("Creating YFM...")
-        print("target: " + create_yfm_file)
+        logger.debug("Creating YFM...")
+        logger.debug("target: " + create_yfm_file)
         with open(create_yfm_file) as f:
             lines = f.readlines()
             tag_line = create_tag_line_from_lines(lines)
-            print("insert YFM...")
+            logger.debug("insert YFM...")
             dt = datetime.datetime
             date_value = datetime.datetime.fromtimestamp(os.stat(create_yfm_file).st_birthtime)
             update_value = datetime.datetime.fromtimestamp(os.path.getmtime(create_yfm_file))
@@ -167,16 +176,16 @@ def check_and_create_yfm(files):
                     'tags: ' + this_YFM['tags'] + '\n'\
                     'draft: ' + this_YFM['draft'] + '\n'\
                     '---\n\n'
-            print(YFM_text)
+            logger.debug(YFM_text)
             lines.insert(0, YFM_text)
             # writing header
             writing_lines_without_hashtags(create_yfm_file, lines)
             processing_file_cnt += 1 # Counting the number of files processed
-    print(str(processing_file_cnt) + 'files have been updated!\n')
+    logger.debug(str(processing_file_cnt) + 'files have been updated!\n')
 
 def create_tag_line_from_lines(lines):
     '''create tag line for YFM from hashtags'''
-    print('checking tags...')
+    logger.debug('checking tags...')
     tag_line = ""
     for line in lines:
         for tag in re.findall('(\s|^)\#([^\s|^\#]+)', line):
@@ -190,30 +199,30 @@ def create_tag_line_from_lines(lines):
 def writing_lines_without_hashtags(target, lines):
     '''writing lines without hashtags'''
     with open(target, mode='w') as wf:
-        print("writing file...")
+        logger.debug("writing file...")
         for line in lines:
             # Delete the hashtag line
             if not re.match("^\#[^\#|^\s].+", line):
                 wf.write(line)
-        print("done!\n")
+        logger.debug("done!\n")
 
 def rename_notes_with_links(files):
     '''Rename the all file names to UID and update wikilinks to Markdownlinks'''
-    print('\n====== Start Rename Notes And Substitute Wikilinks ======')
-    print('the target is: ' + str(len(files)) + ' files\n')
+    logger.debug('====== Start Rename Notes And Substitute Wikilinks ======')
+    logger.debug('the target is: ' + str(len(files)) + ' files\n')
     rename_file_cnt = 0 # Counting the number of files processed
     substitute_file_cnt = 0 # Number of files with links
     for file in files: 
-        print("target: " + file)
+        logger.debug("target: " + file)
         if check_note_has_uid(file):
-            print("It seems that this file already has a UID\n")
+            logger.debug("It seems that this file already has a UID\n")
             continue
         else:
             new_file_path = get_new_filepath_with_uid(file)
-            print("rename: " + new_file_path)
+            logger.debug("rename: " + new_file_path)
             # rename and move ROOT PATH
             new_file_path_result = shutil.move(file, new_file_path)
-            print("rename done: " + new_file_path_result)
+            logger.debug("rename done: " + new_file_path_result)
             rename_file_cnt += 1
             # add UID to top of YFM
             with open(new_file_path_result) as f:
@@ -223,29 +232,29 @@ def rename_notes_with_links(files):
                     wf.writelines(lines)
             if substitute_wikilinks_to_markdown_links(file, new_file_path_result):
                 substitute_file_cnt += 1
-    print(str(rename_file_cnt) + 'files have been renamed!\n')
-    print(str(substitute_file_cnt) + 'linked files have been updated!\n')
+    logger.debug(str(rename_file_cnt) + 'files have been renamed!\n')
+    logger.debug(str(substitute_file_cnt) + 'linked files have been updated!\n')
 
 def rename_images_with_links(files):
-    print('\n====== Start Rename Images And Substitute Wikilinks ======')
-    print('the target is: ' + str(len(files)) + ' files\n')
+    logger.debug('====== Start Rename Images And Substitute Wikilinks ======')
+    logger.debug('the target is: ' + str(len(files)) + ' files\n')
     rename_file_cnt = 0 # Counting the number of files processed
     substitute_file_cnt = 0 # Number of files with links
     for file in files:
-        print("target: " + file)
+        logger.debug("target: " + file)
         if check_note_has_uid(file):
-            print("It seems that this file already has a UID\n")
+            logger.debug("It seems that this file already has a UID\n")
             continue
         else:
             # rename image
             new_file_path = get_new_filepath_with_uid(file)
             os.rename(file, new_file_path)
             rename_file_cnt += 1
-            print("rename: " + new_file_path)
+            logger.debug("rename: " + new_file_path)
             if substitute_wikilinks_to_markdown_links(file, new_file_path):
                 substitute_file_cnt += 1
-    print(str(rename_file_cnt) + ' files have been renamed!')
-    print(str(substitute_file_cnt) + ' linked files have been updated!\n')
+    logger.debug(str(rename_file_cnt) + ' files have been renamed!')
+    logger.debug(str(substitute_file_cnt) + ' linked files have been updated!\n')
 
 def check_note_has_uid(file):
     file_title = os.path.splitext(os.path.basename(file))[0]
@@ -275,11 +284,11 @@ def substitute_wikilinks_to_markdown_links(old_file_path, new_file_path):
     old_file_title = os.path.splitext(os.path.basename(old_file_path))[0]
     old_file_ext = os.path.splitext(os.path.basename(old_file_path))[1]
     new_file_link = os.path.basename(new_file_path)
-    print("substitute Wikilinks...")
+    logger.debug("substitute Wikilinks...")
     update_link_files = get_files('note')
     check_substitute_flg = False # Whether it has been replaced or not
     # check all notes links
-    print("checking " + str(len(update_link_files)) + " files...")
+    logger.debug("checking " + str(len(update_link_files)) + " files...")
     substitute_file_cnt = 0 # For counting the number of replaced files
     substitute_line_cnt = 0
     for update_link_file in update_link_files:
@@ -290,8 +299,8 @@ def substitute_wikilinks_to_markdown_links(old_file_path, new_file_path):
                 # Replace the target Wikilinks if any
                 match = re.search('\[\[(' + old_file_title + '(' + old_file_ext + ')?'+ '(\s\|\s(.+))?)\]\]', line)
                 if match:
-                    print("match: " + update_link_file)
-                    print("substitute: " + match.group(0))
+                    logger.debug("match: " + update_link_file)
+                    logger.debug("substitute: " + match.group(0))
                     if not check_substitute_flg:
                         check_substitute_flg = True
                     if not substitute_flg:
@@ -302,14 +311,14 @@ def substitute_wikilinks_to_markdown_links(old_file_path, new_file_path):
                         lines[i] = line.replace(match.group(0), '[' + match.group(4) + '](' + new_file_link + ')')
                     else:
                         lines[i] = line.replace(match.group(0), '[' + match.group(1) + '](' + new_file_link + ')')
-                    print(lines[i])
+                    logger.debug(lines[i])
             with open(update_link_file, mode='w') as wf:
                 wf.writelines(lines)
             if substitute_flg:
                 substitute_file_cnt += 1
-    print(str(substitute_line_cnt) + " lines replaced!")
-    print("The link that existed in file " + str(substitute_file_cnt) + " has been updated!")
-    print("done!\n")
+    logger.debug(str(substitute_line_cnt) + " lines replaced!")
+    logger.debug("The link that existed in file " + str(substitute_file_cnt) + " has been updated!")
+    logger.debug("done!\n")
     return check_substitute_flg
 
 def query_yes_no(question, default="yes"):
@@ -340,29 +349,32 @@ def query_yes_no(question, default="yes"):
 
 if __name__ == '__main__':
     '''This is the main process to implement the enabled features'''
+    logger.debug('=================================================')
+    logger.debug('Welcome to Note normalization for Zettelkasten!')
+    logger.debug('=================================================\n')
     argv = sys.argv
     # Specify the target folder
     if len(argv) > 1:
-        print('Arguments received')
+        logger.debug('Arguments received')
         path = argv[1]
         if os.path.isdir(path):
-            print('The existence of the folder has been confirmed!')
+            logger.debug('The existence of the folder has been confirmed!')
         else:
-            print('The specified folder does not seem to exist.')
+            logger.debug('The specified folder does not seem to exist.')
     else:
-        print('no arguments. Target the current directory.')
+        logger.debug('no arguments. Target the current directory.')
         path = os.getcwd()
-    print('Zettelkasten ROOT PATH is: ' + path)
-    print('Can I normalize the notes in this folder?')
+    logger.debug('Zettelkasten ROOT PATH is: ' + path)
+    logger.debug('Can I normalize the notes in this folder?')
     # Confirmation to the user
     if query_yes_no(path):
-        print('okay. Continue processing')
+        logger.debug('okay. Continue processing')
         ROOT_PATH = path
     else:
-        print('okay. Abort the process')
+        logger.debug('okay. Abort the process')
         sys.exit()
     # Confirm the function to be performed
-    print('\nChecking the process to be executed\n')
+    logger.debug('Checking the process to be executed\n')
     function_desc = {
         'function_create_yfm': '- Yaml FrontMatter formatting\t\t\t......\t',
         'function_rename_notes': '- Rename the note to UID and update the link\t.......\t',
@@ -371,11 +383,11 @@ if __name__ == '__main__':
     on_off_text = ['ON', 'OFF']
     for key in EXECUTION_FUNCTION_LIST:
         if EXECUTION_FUNCTION_LIST[key]:
-            print(function_desc[key] + on_off_text[0])
+            logger.debug(function_desc[key] + on_off_text[0])
         else:
-            print(function_desc[key] + on_off_text[1])
+            logger.debug(function_desc[key] + on_off_text[1])
     if not query_yes_no('\nAre you sure you want to perform the above functions?'):
-        print('okay. Abort the process')
+        logger.debug('okay. Abort the process')
         sys.exit()
     # Execute an enabled process
     if EXECUTION_FUNCTION_LIST["function_create_yfm"]:
@@ -385,5 +397,5 @@ if __name__ == '__main__':
     if EXECUTION_FUNCTION_LIST["function_rename_images"]: 
         rename_images_with_links(get_files('image'))
     # finish!
-    print('\nAll processing is complete!')
-    print('Enjoy building your second brain!')
+    logger.debug('All processing is complete!')
+    logger.debug('Enjoy building your second brain!')
