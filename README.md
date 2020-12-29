@@ -1,2 +1,2 @@
-# normalization-notes-for-zettelkasten
-Normalization notes for Zettelkasten. Add YFM, give UID, replace Wikilinks, update links, etc.
+# Note normalization for Zettelkasten
+Note normalization for Zettelkasten. Add Yaml FrontMatter, add UIDs and rename files, replace Wikilink with Markdown link, etc.
