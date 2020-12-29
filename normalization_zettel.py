@@ -7,7 +7,7 @@ INBOX_DIR = ['Inbox', 'Draft', 'Pending'] # The files in this folder will have t
 EXCLUDE_DIR = set(['Template', 'tmp']) # Folders not to be processed (Hidden folders and files are not covered by default)
 EXCLUDE_FILE = set(['tags']) # Files not to be processed (Hidden folders and files are not covered by default)
 NOTE_EXT = ['.md', '.txt'] # Note file extension
-IMG_EXT = ['.png', '.jpg', '.jpeg', '.svg'] # image file extension
+IMG_EXT = ['.png', '.jpg', '.jpeg', '.svg', '.gif'] # image file extension
 # YFM default settings
 YFM = {
     "title": "", # It will be replaced by the file name
@@ -20,12 +20,14 @@ YFM = {
 
 # === Enable function section ===
 # Please set the function you want to use to True.
-function_create_yfm = True # If there is no Yaml FrontMatter at the beginning of the note, it will be generated
-function_rename_notes = True # Replace the file name of the note with the UID and replace the linked parts from other notes
-function_rename_images = True # Replace the file name of the image with the UID and replace the linked part from the other note
+EXECUTION_FUNCTION_LIST = {
+    "function_create_yfm": True, # If there is no Yaml FrontMatter at the beginning of the note, it will be generated
+    "function_rename_notes": True, # Replace the file name of the note with the UID and replace the linked parts from other notes
+    "function_rename_images": True, # Replace the file name of the image with the UID and replace the linked part from the other note
+}
 
 # === Start the process ===
-import shutil, os, datetime, re
+import sys, shutil, os, datetime, re
 
 def get_files(type):
     '''Retrieves a file of the specified type'''
@@ -71,6 +73,7 @@ def check_and_create_yfm(files):
                 print("No YFM yet")
     print('\n====== Start Update YFM ======')
     print('the target is: ' + str(len(update_yfm_files)) + ' files\n')
+    processing_file_cnt = 0 # Counting the number of files processed
     for update_yfm_file in update_yfm_files:
         print("Updating YFM...")
         print("target: " + update_yfm_file)
@@ -98,9 +101,13 @@ def check_and_create_yfm(files):
                     if re.match("^" + key + ": ", line):
                         check_YFM[key] = True
             dt = datetime.datetime
+            update_flg = False # Check to see if it has been processed
             # Adding an item
             for key in check_YFM:
                 if check_YFM[key] == False:
+                    # Check as processed
+                    if not update_flg:
+                        update_flg = True
                     if key == 'title':
                         this_YFM[key] = os.path.splitext(os.path.basename(create_yfm_file))[0]
                     elif key == 'aliases':
@@ -123,8 +130,16 @@ def check_and_create_yfm(files):
                     end_of_yfm += 1
             # writing header
             writing_lines_without_hashtags(update_yfm_file, lines)
+            # Count the number of files processed.
+            if update_flg:
+                print("update YFM!")
+                processing_file_cnt += 1
+            else:
+                print("There is no YFM to update")
+    print(str(processing_file_cnt) + ' files have been updated!\n')
     print('\n====== Start Add New YFM ======')
     print('the target is: ' + str(len(create_yfm_files)) + ' files\n')
+    processing_file_cnt = 0 # Counting the number of files processed
     for create_yfm_file in create_yfm_files:
         print("Creating YFM...")
         print("target: " + create_yfm_file)
@@ -156,6 +171,8 @@ def check_and_create_yfm(files):
             lines.insert(0, YFM_text)
             # writing header
             writing_lines_without_hashtags(create_yfm_file, lines)
+            processing_file_cnt += 1 # Counting the number of files processed
+    print(str(processing_file_cnt) + 'files have been updated!\n')
 
 def create_tag_line_from_lines(lines):
     '''create tag line for YFM from hashtags'''
@@ -184,6 +201,8 @@ def rename_notes_with_links(files):
     '''Rename the all file names to UID and update wikilinks to Markdownlinks'''
     print('\n====== Start Rename Notes And Substitute Wikilinks ======')
     print('the target is: ' + str(len(files)) + ' files\n')
+    rename_file_cnt = 0 # Counting the number of files processed
+    substitute_file_cnt = 0 # Number of files with links
     for file in files: 
         print("target: " + file)
         if check_note_has_uid(file):
@@ -195,17 +214,23 @@ def rename_notes_with_links(files):
             # rename and move ROOT PATH
             new_file_path_result = shutil.move(file, new_file_path)
             print("rename done: " + new_file_path_result)
+            rename_file_cnt += 1
             # add UID to top of YFM
             with open(new_file_path_result) as f:
                 lines = f.readlines()
                 lines.insert(1, "uid: " + str(os.path.splitext(os.path.basename(new_file_path_result))[0]) + "\n")
                 with open(new_file_path_result, mode='w') as wf:
                     wf.writelines(lines)
-            substitute_wikilinks_to_markdown_links(file, new_file_path_result)
+            if substitute_wikilinks_to_markdown_links(file, new_file_path_result):
+                substitute_file_cnt += 1
+    print(str(rename_file_cnt) + 'files have been renamed!\n')
+    print(str(substitute_file_cnt) + 'linked files have been updated!\n')
 
 def rename_images_with_links(files):
     print('\n====== Start Rename Images And Substitute Wikilinks ======')
     print('the target is: ' + str(len(files)) + ' files\n')
+    rename_file_cnt = 0 # Counting the number of files processed
+    substitute_file_cnt = 0 # Number of files with links
     for file in files:
         print("target: " + file)
         if check_note_has_uid(file):
@@ -215,8 +240,12 @@ def rename_images_with_links(files):
             # rename image
             new_file_path = get_new_filepath_with_uid(file)
             os.rename(file, new_file_path)
+            rename_file_cnt += 1
             print("rename: " + new_file_path)
-            substitute_wikilinks_to_markdown_links(file, new_file_path)
+            if substitute_wikilinks_to_markdown_links(file, new_file_path):
+                substitute_file_cnt += 1
+    print(str(rename_file_cnt) + ' files have been renamed!')
+    print(str(substitute_file_cnt) + ' linked files have been updated!\n')
 
 def check_note_has_uid(file):
     file_title = os.path.splitext(os.path.basename(file))[0]
@@ -248,16 +277,26 @@ def substitute_wikilinks_to_markdown_links(old_file_path, new_file_path):
     new_file_link = os.path.basename(new_file_path)
     print("substitute Wikilinks...")
     update_link_files = get_files('note')
+    check_substitute_flg = False # Whether it has been replaced or not
     # check all notes links
+    print("checking " + str(len(update_link_files)) + " files...")
+    substitute_file_cnt = 0 # For counting the number of replaced files
+    substitute_line_cnt = 0
     for update_link_file in update_link_files:
+        substitute_flg = False # For counting the number of replaced files
         with open(update_link_file, mode='r') as f:
             lines = f.readlines()
             for i, line in enumerate(lines):
                 # Replace the target Wikilinks if any
                 match = re.search('\[\[(' + old_file_title + '(' + old_file_ext + ')?'+ '(\s\|\s(.+))?)\]\]', line)
                 if match:
-                    print("match: " + old_file_path)
+                    print("match: " + update_link_file)
                     print("substitute: " + match.group(0))
+                    if not check_substitute_flg:
+                        check_substitute_flg = True
+                    if not substitute_flg:
+                        substitute_flg = True
+                    substitute_line_cnt += 1
                     # If Alias is set in the Link, use Alias as the Link Text
                     if match.group(4):
                         lines[i] = line.replace(match.group(0), '[' + match.group(4) + '](' + new_file_link + ')')
@@ -266,15 +305,82 @@ def substitute_wikilinks_to_markdown_links(old_file_path, new_file_path):
                     print(lines[i])
             with open(update_link_file, mode='w') as wf:
                 wf.writelines(lines)
+            if substitute_flg:
+                substitute_file_cnt += 1
+    print(str(substitute_line_cnt) + " lines replaced!")
+    print("The link that existed in file " + str(substitute_file_cnt) + " has been updated!")
     print("done!\n")
+    return check_substitute_flg
+
+def query_yes_no(question, default="yes"):
+    """Ask a yes/no question"""
+    # Acceptable responses
+    valid = {"yes": True, "y": True, "ye": True,
+             "no": False, "n": False}
+    # set default Value
+    if default is None:
+        prompt = " [y/n] "
+    elif default == "yes":
+        prompt = " [Y/n] "
+    elif default == "no":
+        prompt = " [y/N] "
+    else:
+        raise ValueError("invalid default answer: '%s'" % default)
+    # check input process
+    while True:
+        sys.stdout.write(question + prompt)
+        choice = input().lower()
+        if default is not None and choice == '':
+            return valid[default]
+        elif choice in valid:
+            return valid[choice]
+        else:
+            sys.stdout.write("Please respond with 'yes' or 'no' "
+                             "(or 'y' or 'n').\n")
 
 if __name__ == '__main__':
     '''This is the main process to implement the enabled features'''
-    if function_create_yfm:
+    argv = sys.argv
+    # Specify the target folder
+    if len(argv) > 1:
+        print('Arguments received')
+        path = argv[1]
+        if os.path.isdir(path):
+            print('The existence of the folder has been confirmed!')
+        else:
+            print('The specified folder does not seem to exist.')
+    else:
+        print('no arguments. Target the current directory.')
+        path = os.getcwd()
+    print('Zettelkasten ROOT PATH is: ' + path)
+    print('Can I normalize the notes in this folder?')
+    # Confirmation to the user
+    if query_yes_no(path):
+        print('okay. Continue processing')
+        ROOT_PATH = path
+    else:
+        print('okay. Abort the process')
+        sys.exit()
+    # Confirm the function to be performed
+    print('\nChecking the process to be executed\n')
+    function_desc = {
+        'function_create_yfm': '- Yaml FrontMatter formatting\t\t\t......\t',
+        'function_rename_notes': '- Rename the note to UID and update the link\t.......\t',
+        'function_rename_images': '- Rename the image to UID and update the link\t.......\t'
+    }
+    on_off_text = ['ON', 'OFF']
+    for key in EXECUTION_FUNCTION_LIST:
+        if EXECUTION_FUNCTION_LIST[key]:
+            print(function_desc[key] + on_off_text[0])
+        else:
+            print(function_desc[key] + on_off_text[1])
+    if not query_yes_no('\nAre you sure you want to perform the above functions?'):
+        print('okay. Abort the process')
+        sys.exit()
+    # Execute an enabled process
+    if EXECUTION_FUNCTION_LIST["function_create_yfm"]:
         check_and_create_yfm(get_files('note'))
-
-    if function_rename_notes:
+    if EXECUTION_FUNCTION_LIST["function_rename_notes"]:
         rename_notes_with_links(get_files('note'))
-
-    if function_rename_images: 
+    if EXECUTION_FUNCTION_LIST["function_rename_images"]: 
         rename_images_with_links(get_files('image'))
