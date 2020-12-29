@@ -269,7 +269,7 @@ def substitute_wikilinks_to_markdown_links(old_file_path, new_file_path):
     print("done!\n")
 
 if __name__ == '__main__':
-'''This is the main process to implement the enabled features'''
+    '''This is the main process to implement the enabled features'''
     if function_create_yfm:
         check_and_create_yfm(get_files('note'))
 
