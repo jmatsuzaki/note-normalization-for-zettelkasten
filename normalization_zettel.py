@@ -384,3 +384,6 @@ if __name__ == '__main__':
         rename_notes_with_links(get_files('note'))
     if EXECUTION_FUNCTION_LIST["function_rename_images"]: 
         rename_images_with_links(get_files('image'))
+    # finish!
+    print('\nAll processing is complete!')
+    print('Enjoy building your second brain!')
