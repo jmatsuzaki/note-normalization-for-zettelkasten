@@ -5,9 +5,11 @@
 # set your Zettelkasten's absolute path
 # ROOT_PATH = '/Users/jmatsuzaki/Dropbox/Knowledge/Zettelkasten'
 ROOT_PATH = '/Users/jmatsuzaki/Desktop/Ztest'
-INBOX_DIR = 'Inbox'
-NOTE_EXT = ['.md', '.txt']
-IMG_EXT = ['.png', '.jpg', '.jpeg', '.svg']
+INBOX_DIR = ['Inbox', 'Draft', 'Pending'] # The files in this folder will have the YFM draft key set to true
+EXCLUDE_DIR = set(['Template', 'tmp']) # Folders not to be processed (Hidden folders and files are not covered by default)
+EXCLUDE_FILE = set(['tags']) # Files not to be processed (Hidden folders and files are not covered by default)
+NOTE_EXT = ['.md', '.txt'] # Note file extension
+IMG_EXT = ['.png', '.jpg', '.jpeg', '.svg'] # image file extension
 # YFM settings
 YFM = {
     "title": "",
@@ -22,7 +24,8 @@ YFM = {
 # === Enable function section ===
 # Please set the function you want to use to True.
 function_create_yfm = True
-function_rename_files = True
+function_rename_notes = True
+function_rename_images = True
 
 
 # === Start the process ===
@@ -34,10 +37,14 @@ import re
 
 def get_files(type):
     '''get all note files'''
-    path = ROOT_PATH
     files = []
     # get all files
-    for pathname, dirnames, filenames in os.walk(path):
+    for pathname, dirnames, filenames in os.walk(ROOT_PATH, topdown=True):
+        # exclude dir and files
+        dirnames[:] = list(filter(lambda d: not d in EXCLUDE_DIR, dirnames))
+        filenames[:] = list(filter(lambda f: not f in EXCLUDE_FILE, filenames))
+        dirnames[:] = list(filter(lambda d: not d[0] == '.', dirnames)) # Hidden directory beginning with "."
+        filenames[:] = list(filter(lambda f: not f[0] == '.', filenames)) # Hidden files beginning with "."
         for filename in filenames:
             # Filtering files
             if type == 'note':
@@ -52,8 +59,8 @@ def get_files(type):
 
 def check_and_create_yfm(files):
     '''If there is no YFM, create one.'''
-    print('====== Start Check YFM ======')
-    print('the target is: ' + str(len(files)) + ' files')
+    print('\n====== Start Check YFM ======')
+    print('the target is: ' + str(len(files)) + ' files\n')
     update_yfm_files = [] # if note have YFM
     create_yfm_files = [] # if note doesn't have YFM
     # check and classify files by exists YFM
@@ -70,8 +77,8 @@ def check_and_create_yfm(files):
             else: 
                 create_yfm_files.append(file)
                 print("No YFM yet")
-    print('====== Start Update YFM ======')
-    print('the target is: ' + str(len(update_yfm_files)) + ' files')
+    print('\n====== Start Update YFM ======')
+    print('the target is: ' + str(len(update_yfm_files)) + ' files\n')
     for update_yfm_file in update_yfm_files:
         print("Updating YFM...")
         print("target: " + update_yfm_file)
@@ -115,7 +122,7 @@ def check_and_create_yfm(files):
                     elif key == 'tags':
                         this_YFM[key] = create_tag_line_from_lines(lines)
                     elif key == 'draft':
-                        if os.path.basename(os.path.dirname(update_yfm_file)) == INBOX_DIR:
+                        if os.path.basename(os.path.dirname(update_yfm_file)) in INBOX_DIR:
                             this_YFM[key] = "true"
                         else:
                             this_YFM[key] = "false"
@@ -124,8 +131,8 @@ def check_and_create_yfm(files):
                     end_of_yfm += 1
             # writing header
             writing_lines_without_hashtags(update_yfm_file, lines)
-    print('====== Start Add New YFM ======')
-    print('the target is: ' + str(len(create_yfm_files)) + ' files')
+    print('\n====== Start Add New YFM ======')
+    print('the target is: ' + str(len(create_yfm_files)) + ' files\n')
     for create_yfm_file in create_yfm_files:
         print("Creating YFM...")
         print("target: " + create_yfm_file)
@@ -141,7 +148,7 @@ def check_and_create_yfm(files):
             this_YFM['date'] = date_value.strftime('%Y-%m-%d %H:%M:%S')
             this_YFM['update'] = update_value.strftime('%Y-%m-%d %H:%M:%S')
             this_YFM['tags'] = tag_line
-            if os.path.basename(os.path.dirname(create_yfm_file)) == INBOX_DIR:
+            if os.path.basename(os.path.dirname(create_yfm_file)) in INBOX_DIR:
                 this_YFM['draft'] = "true"
             else:
                 this_YFM['draft'] = "false"
@@ -179,38 +186,53 @@ def writing_lines_without_hashtags(target, lines):
             # Delete the hashtag line
             if not re.match("^\#[^\#|^\s].+", line):
                 wf.write(line)
+        print("done!\n")
 
 def rename_notes_with_links(files):
     '''Rename the all file names to UID and update wikilinks to Markdownlinks'''
-    print('====== Start Rename Notes And Substitute Wikilinks ======')
-    print('the target is: ' + str(len(files)) + ' files')
+    print('\n====== Start Rename Notes And Substitute Wikilinks ======')
+    print('the target is: ' + str(len(files)) + ' files\n')
     for file in files: 
         print("target: " + file)
-        new_file_path = get_new_filepath_with_uid(file)
-        print("rename: " + new_file_path)
-        # rename and move ROOT PATH
-        new_file_path_result = shutil.move(file, new_file_path)
-        print("rename done: " + new_file_path_result)
-        # add UID to top of YFM
-        with open(new_file_path_result) as f:
-            lines = f.readlines()
-            lines.insert(1, "uid: " + str(os.path.splitext(os.path.basename(new_file_path_result))[0]) + "\n")
-            with open(new_file_path_result, mode='w') as wf:
-                wf.writelines(lines)
-        substitute_wikilinks_to_markdown_links(file, new_file_path_result)
+        if check_note_has_uid(file):
+            print("It seems that this file already has a UID\n")
+            continue
+        else:
+            new_file_path = get_new_filepath_with_uid(file)
+            print("rename: " + new_file_path)
+            # rename and move ROOT PATH
+            new_file_path_result = shutil.move(file, new_file_path)
+            print("rename done: " + new_file_path_result)
+            # add UID to top of YFM
+            with open(new_file_path_result) as f:
+                lines = f.readlines()
+                lines.insert(1, "uid: " + str(os.path.splitext(os.path.basename(new_file_path_result))[0]) + "\n")
+                with open(new_file_path_result, mode='w') as wf:
+                    wf.writelines(lines)
+            substitute_wikilinks_to_markdown_links(file, new_file_path_result)
 
 def rename_images_with_links(files):
-    print('====== Start Rename Images And Substitute Wikilinks ======')
-    print('the target is: ' + str(len(files)) + ' files')
+    print('\n====== Start Rename Images And Substitute Wikilinks ======')
+    print('the target is: ' + str(len(files)) + ' files\n')
     for file in files:
         print("target: " + file)
-        # rename image
-        new_file_path = get_new_filepath_with_uid(file)
-        os.rename(file, new_file_path)
-        print("rename: " + new_file_path)
-        substitute_wikilinks_to_markdown_links(file, new_file_path)
+        if check_note_has_uid(file):
+            print("It seems that this file already has a UID\n")
+            continue
+        else:
+            # rename image
+            new_file_path = get_new_filepath_with_uid(file)
+            os.rename(file, new_file_path)
+            print("rename: " + new_file_path)
+            substitute_wikilinks_to_markdown_links(file, new_file_path)
+
+def check_note_has_uid(file):
+    file_title = os.path.splitext(os.path.basename(file))[0]
+    return re.match('^\d{14}$', file_title)
 
 def get_new_filepath_with_uid(file):
+    '''get new filepath with uid'''
+    # UID is yyyymmddhhmmss from create date
     uid = datetime.datetime.fromtimestamp(os.stat(file).st_birthtime)
     uid = int(uid.strftime('%Y%m%d%H%M%S'))
     ext = os.path.splitext(os.path.basename(file))[1]
@@ -228,31 +250,40 @@ def build_filepath_by_uid(uid, ext='.md', path=ROOT_PATH):
 
 def substitute_wikilinks_to_markdown_links(old_file_path, new_file_path):
     '''substitute wikilinks to markdown links'''
+    # build file info
     old_file_title = os.path.splitext(os.path.basename(old_file_path))[0]
     old_file_ext = os.path.splitext(os.path.basename(old_file_path))[1]
     new_file_link = os.path.basename(new_file_path)
     print("substitute Wikilinks...")
     update_link_files = get_files('note')
+    # check all notes links
     for update_link_file in update_link_files:
         with open(update_link_file, mode='r') as f:
             lines = f.readlines()
             for i, line in enumerate(lines):
+                # Replace the target Wikilinks if any
                 match = re.search('\[\[(' + old_file_title + '(' + old_file_ext + ')?'+ '(\s\|\s(.+))?)\]\]', line)
                 if match:
+                    print("match: " + old_file_path)
+                    print("substitute: " + match.group(0))
+                    # If Alias is set in the Link, use Alias as the Link Text
                     if match.group(4):
                         lines[i] = line.replace(match.group(0), '[' + match.group(4) + '](' + new_file_link + ')')
                     else:
                         lines[i] = line.replace(match.group(0), '[' + match.group(1) + '](' + new_file_link + ')')
+                    print(lines[i])
             with open(update_link_file, mode='w') as wf:
                 wf.writelines(lines)
-    print("done!")
+    print("done!\n")
 
 def main():
     if function_create_yfm:
         check_and_create_yfm(get_files('note'))
 
-    if function_rename_files:
+    if function_rename_notes:
         rename_notes_with_links(get_files('note'))
+
+    if function_rename_images: 
         rename_images_with_links(get_files('image'))
 
 main()
