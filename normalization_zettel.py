@@ -1,6 +1,18 @@
+# === Start the process ===
+import sys, shutil, os, datetime, re
+# setup logger
+import logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.FileHandler("debug.log"),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
+
 # === Setting section ===
-# ROOT_PATH = '/Users/jmatsuzaki/Dropbox/Knowledge/Zettelkasten' # set your Zettelkasten's absolute path
-ROOT_PATH = '/Users/jmatsuzaki/Desktop/Ztest' # set your Zettelkasten's absolute path
 INBOX_DIR = ['Inbox', 'Draft', 'Pending'] # The files in this folder will have the YFM draft key set to true
 EXCLUDE_DIR = set(['Template', 'tmp']) # Folders not to be processed (Hidden folders and files are not covered by default)
 EXCLUDE_FILE = set(['tags']) # Files not to be processed (Hidden folders and files are not covered by default)
@@ -23,20 +35,6 @@ EXECUTION_FUNCTION_LIST = {
     "function_rename_notes": True, # Replace the file name of the note with the UID and replace the linked parts from other notes
     "function_rename_images": True, # Replace the file name of the image with the UID and replace the linked part from the other note
 }
-
-# === Start the process ===
-import sys, shutil, os, datetime, re
-# setup logger
-import logging
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[
-        logging.FileHandler("debug.log"),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger(__name__)
 
 def get_files(type):
     '''Retrieves a file of the specified type'''
@@ -271,11 +269,11 @@ def get_new_filepath_with_uid(file):
     else:
         path = os.path.dirname(file)
     # Add 1 if the UID is duplicated
-    while os.path.exists(build_filepath_by_uid(uid, ext, path)):
+    while os.path.exists(build_filepath_by_uid(uid, path, ext)):
         uid += 1
-    return build_filepath_by_uid(uid, ext, path)
+    return build_filepath_by_uid(uid, path, ext)
 
-def build_filepath_by_uid(uid, ext='.md', path=ROOT_PATH):
+def build_filepath_by_uid(uid, path, ext='.md'):
     return path + '/' + str(uid) + ext
 
 def substitute_wikilinks_to_markdown_links(old_file_path, new_file_path):
@@ -398,4 +396,4 @@ if __name__ == '__main__':
         rename_images_with_links(get_files('image'))
     # finish!
     logger.debug('All processing is complete!')
-    logger.debug('Enjoy building your second brain!')
+    logger.debug('Enjoy building your SECOND BRAIN!')
