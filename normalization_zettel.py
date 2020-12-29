@@ -28,7 +28,7 @@ function_rename_images = True # Replace the file name of the image with the UID 
 import shutil, os, datetime, re
 
 def get_files(type):
-    '''get all note files'''
+    '''Retrieves a file of the specified type'''
     files = []
     # get all files
     for pathname, dirnames, filenames in os.walk(ROOT_PATH, topdown=True):
