@@ -1,39 +1,31 @@
 # coding: utf-8
 
-
 # === Setting section ===
-# set your Zettelkasten's absolute path
-# ROOT_PATH = '/Users/jmatsuzaki/Dropbox/Knowledge/Zettelkasten'
-ROOT_PATH = '/Users/jmatsuzaki/Desktop/Ztest'
+# ROOT_PATH = '/Users/jmatsuzaki/Dropbox/Knowledge/Zettelkasten' # set your Zettelkasten's absolute path
+ROOT_PATH = '/Users/jmatsuzaki/Desktop/Ztest' # set your Zettelkasten's absolute path
 INBOX_DIR = ['Inbox', 'Draft', 'Pending'] # The files in this folder will have the YFM draft key set to true
 EXCLUDE_DIR = set(['Template', 'tmp']) # Folders not to be processed (Hidden folders and files are not covered by default)
 EXCLUDE_FILE = set(['tags']) # Files not to be processed (Hidden folders and files are not covered by default)
 NOTE_EXT = ['.md', '.txt'] # Note file extension
 IMG_EXT = ['.png', '.jpg', '.jpeg', '.svg'] # image file extension
-# YFM settings
+# YFM default settings
 YFM = {
-    "title": "",
+    "title": "", # It will be replaced by the file name
     "aliases": "[]",
-    "date": "",
-    "update":"",
-    "tags": "[]",
-    "draft": "false"
+    "date": "", # Replaced by the file creation date
+    "update":"", # Replaced by the file modification date
+    "tags": "[]", # If you have a hashtag, it will be generated automatically
+    "draft": "false" # The following note will be true for the folder specified as INBOX_DIR
 }
-
 
 # === Enable function section ===
 # Please set the function you want to use to True.
-function_create_yfm = True
-function_rename_notes = True
-function_rename_images = True
-
+function_create_yfm = True # If there is no Yaml FrontMatter at the beginning of the note, it will be generated
+function_rename_notes = True # Replace the file name of the note with the UID and replace the linked parts from other notes
+function_rename_images = True # Replace the file name of the image with the UID and replace the linked part from the other note
 
 # === Start the process ===
-
-import shutil
-import os
-import datetime
-import re
+import shutil, os, datetime, re
 
 def get_files(type):
     '''get all note files'''
@@ -276,7 +268,8 @@ def substitute_wikilinks_to_markdown_links(old_file_path, new_file_path):
                 wf.writelines(lines)
     print("done!\n")
 
-def main():
+if __name__ == '__main__':
+'''This is the main process to implement the enabled features'''
     if function_create_yfm:
         check_and_create_yfm(get_files('note'))
 
@@ -285,5 +278,3 @@ def main():
 
     if function_rename_images: 
         rename_images_with_links(get_files('image'))
-
-main()
