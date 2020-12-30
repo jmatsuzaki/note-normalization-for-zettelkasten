@@ -1,7 +1,19 @@
 # Note normalization for Zettelkasten
+
 Note normalization for Zettelkasten. Add Yaml Front Matter, add UIDs and rename files, replace Wikilink with Markdown link, etc.
 
-## DEMO
+Normalizing notes reduces dependence on tools and increases the flexibility and independence of Zettelkasten notes. This is useful for transforming a knowledge notebook into a permanent notebook.
+
+1. [Screenshots](#screenshots)
+2. [Features](#features)
+3. [Requirements](#requirements)
+4. [Installation](#installation)
+5. [Usage](#usage)
+6. [Note](#note)
+7. [Future works (TODO)](#future-works-todo)
+8. [Author](#author)
+
+## Screenshots
 
 ## Features
 
@@ -19,7 +31,7 @@ Note normalization for Zettelkasten. Add Yaml Front Matter, add UIDs and rename 
 
 ## Installation
 
-Download or Git clone this repository
+Download or clone this repository
 
 ## Usage
 

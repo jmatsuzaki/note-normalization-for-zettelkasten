@@ -115,7 +115,7 @@ def check_and_create_yfm(files):
                     if not update_flg:
                         update_flg = True
                     if key == 'title':
-                        this_YFM[key] = get_file_name(update_yfm_file)[0]
+                        this_YFM[key] = get_file_name(update_yfm_file)[1]
                     elif key == 'aliases':
                         this_YFM[key] = "[]"
                     elif key == 'date':
@@ -153,7 +153,7 @@ def check_and_create_yfm(files):
             tag_line = create_tag_line_from_lines(lines)
             logger.debug("insert YFM...")
             this_YFM = YFM
-            this_YFM['title'] = get_file_name(create_yfm_file)[0]
+            this_YFM['title'] = get_file_name(create_yfm_file)[1]
             this_YFM['date'] = format_date(get_creation_date(create_yfm_file))
             this_YFM['update'] = format_date(get_modification_date(create_yfm_file))
             this_YFM['tags'] = tag_line
