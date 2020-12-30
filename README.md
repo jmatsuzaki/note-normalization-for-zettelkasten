@@ -15,7 +15,7 @@ Normalizing notes reduces dependence on tools and increases the flexibility and 
 
 ## Screenshots
 
-[Screenshots](img/readme_screenshots.png)
+![Screenshots](img/readme_screenshots.png)
 
 ## Features
 
