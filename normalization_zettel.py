@@ -1,7 +1,6 @@
 # === Start the process ===
-import sys, shutil, os, datetime, re
+import sys, shutil, os, datetime, re, platform, logging
 # setup logger
-import logging
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s [%(levelname)s] %(message)s",
@@ -107,7 +106,6 @@ def check_and_create_yfm(files):
                 for key in check_YFM:
                     if re.match("^" + key + ": ", line):
                         check_YFM[key] = True
-            dt = datetime.datetime
             update_flg = False # Check to see if it has been processed
             # Adding an item
             for key in check_YFM:
@@ -120,11 +118,9 @@ def check_and_create_yfm(files):
                     elif key == 'aliases':
                         this_YFM[key] = "[]"
                     elif key == 'date':
-                        date_value = datetime.datetime.fromtimestamp(os.stat(update_yfm_file).st_birthtime)
-                        this_YFM[key] = date_value.strftime('%Y-%m-%d %H:%M:%S')
+                        this_YFM[key] = format_date(get_creation_date(update_yfm_file))
                     elif key == 'update':
-                        update_value = datetime.datetime.fromtimestamp(os.path.getmtime(update_yfm_file))
-                        this_YFM[key] = update_value.strftime('%Y-%m-%d %H:%M:%S')
+                        this_YFM[key] = format_date(get_modification_date(update_yfm_file))
                     elif key == 'tags':
                         this_YFM[key] = create_tag_line_from_lines(lines)
                     elif key == 'draft':
@@ -154,13 +150,12 @@ def check_and_create_yfm(files):
             lines = f.readlines()
             tag_line = create_tag_line_from_lines(lines)
             logger.debug("insert YFM...")
-            dt = datetime.datetime
             date_value = datetime.datetime.fromtimestamp(os.stat(create_yfm_file).st_birthtime)
             update_value = datetime.datetime.fromtimestamp(os.path.getmtime(create_yfm_file))
             this_YFM = YFM
             this_YFM['title'] = os.path.splitext(os.path.basename(create_yfm_file))[0]
-            this_YFM['date'] = date_value.strftime('%Y-%m-%d %H:%M:%S')
-            this_YFM['update'] = update_value.strftime('%Y-%m-%d %H:%M:%S')
+            this_YFM['date'] = format_date(get_creation_date(create_yfm_file))
+            this_YFM['update'] = format_date(get_modification_date(create_yfm_file))
             this_YFM['tags'] = tag_line
             if os.path.basename(os.path.dirname(create_yfm_file)) in INBOX_DIR:
                 this_YFM['draft'] = "true"
@@ -180,6 +175,28 @@ def check_and_create_yfm(files):
             writing_lines_without_hashtags(create_yfm_file, lines)
             processing_file_cnt += 1 # Counting the number of files processed
     logger.debug(str(processing_file_cnt) + 'files have been updated!\n')
+
+def format_date(unix_time):
+    '''format unix time to %Y-%m-%d %H:%M:%S'''
+    date_value = datetime.datetime.fromtimestamp(unix_time)
+    return date_value.strftime('%Y-%m-%d %H:%M:%S')
+
+def get_creation_date(file):
+    '''Try to get the date that a file was created, falling back to when it was
+    last modified if that isn't possible.'''
+    if platform.system() == 'Windows':
+        return os.path.getctime(file)
+    else:
+        stat = os.stat(file)
+        try:
+            return stat.st_birthtime
+        except AttributeError:
+            # On Linux, the file creation date is not available, so use the modification date
+            return stat.st_mtime
+
+def get_modification_date(unix_time):
+    '''try to get the date that a file was changed'''
+    return os.path.getmtime(unix_time)
 
 def create_tag_line_from_lines(lines):
     '''create tag line for YFM from hashtags'''
@@ -396,4 +413,5 @@ if __name__ == '__main__':
         rename_images_with_links(get_files('image'))
     # finish!
     logger.debug('All processing is complete!')
+    logger.debug('The execution log was saved to a log file. please see ./debug.log files.\n')
     logger.debug('Enjoy building your SECOND BRAIN!')
