@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 # === Setting section ===
 INBOX_DIR = ['Inbox', 'Draft', 'Pending'] # The files in this folder will have the YFM draft key set to true
-EXCLUDE_DIR = set(['Template', 'tmp']) # Folders not to be processed (Hidden folders and files are not covered by default)
+EXCLUDE_DIR = set(['Backup', 'Template', 'tmp']) # Folders not to be processed (Hidden folders and files are not covered by default)
 EXCLUDE_FILE = set(['tags']) # Files not to be processed (Hidden folders and files are not covered by default)
 NOTE_EXT = ['.md', '.txt'] # Note file extension
 IMG_EXT = ['.png', '.jpg', '.jpeg', '.svg', '.gif'] # image file extension
