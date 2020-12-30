@@ -15,6 +15,8 @@ Normalizing notes reduces dependence on tools and increases the flexibility and 
 
 ## Screenshots
 
+[Screenshots](img/readme_screenshots.png)
+
 ## Features
 
 - Automatically generate Yaml Front Matter from the note information and insert it into the header
