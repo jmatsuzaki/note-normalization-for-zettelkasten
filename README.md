@@ -73,4 +73,4 @@ It is strongly recommended to back up Zettelkasten using a mechanism such as git
 Preview images were taken using:
 
 - [iTerm2](https://iterm2.com/) terminal emulator on macOS
-- [onedark.vim](https://github.com/joshdick/onedark.vim) one [Neovim](https://github.com/neovim/neovim)
+- [onedark.vim](https://github.com/joshdick/onedark.vim) on [Neovim](https://github.com/neovim/neovim)
