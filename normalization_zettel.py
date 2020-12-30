@@ -1,4 +1,3 @@
-# === Start the process ===
 import sys, shutil, os, datetime, re, platform, logging
 # setup logger
 logging.basicConfig(
@@ -35,6 +34,7 @@ EXECUTION_FUNCTION_LIST = {
     "function_rename_images": True, # Replace the file name of the image with the UID and replace the linked part from the other note
 }
 
+# === Start the process ===
 def get_files(type):
     '''Retrieves a file of the specified type'''
     files = []
@@ -391,6 +391,7 @@ def query_yes_no(question, default="yes"):
             sys.stdout.write("Please respond with 'yes' or 'no' "
                              "(or 'y' or 'n').\n")
 
+# === Main process ===
 if __name__ == '__main__':
     '''This is the main process to implement the enabled features'''
     logger.debug('=================================================')
