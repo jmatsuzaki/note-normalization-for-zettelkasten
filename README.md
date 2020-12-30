@@ -4,6 +4,7 @@ Note normalization for Zettelkasten. Add Yaml Front Matter, add UIDs and rename 
 
 Normalizing notes reduces dependence on tools and increases the flexibility and independence of Zettelkasten notes. This is useful for transforming a knowledge notebook into a permanent notebook.
 
+
 1. [Screenshots](#screenshots)
 2. [Features](#features)
 3. [Requirements](#requirements)
@@ -12,6 +13,7 @@ Normalizing notes reduces dependence on tools and increases the flexibility and 
 6. [Note](#note)
 7. [Future works (TODO)](#future-works-todo)
 8. [Author](#author)
+9. [Preview images](#preview-images)
 
 ## Screenshots
 
@@ -65,3 +67,10 @@ It is strongly recommended to back up Zettelkasten using a mechanism such as git
 - [jMatsuzaki](https://jmatsuzaki.com/)
 - [jMatsuzaki Inc.](https://jmatsuzaki.com/company)
 - [@jmatsuzaki](https://twitter.com/jmatsuzaki)
+
+## Preview images
+
+Preview images were taken using:
+
+- [iTerm2](https://iterm2.com/) terminal emulator on macOS
+- [onedark.vim](https://github.com/joshdick/onedark.vim) one [Neovim](https://github.com/neovim/neovim)

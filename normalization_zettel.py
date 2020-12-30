@@ -236,11 +236,17 @@ def writing_lines_without_hashtags(target, lines):
     '''writing lines without hashtags'''
     with open(target, mode='w') as wf:
         logger.debug("writing file...")
-        for line in lines:
+        for i, line in enumerate(lines):
             # Delete the hashtag line
             if not re.match("^\#[^\#|^\s].+", line):
                 wf.write(line)
-        logger.debug("done!")
+    with open(target) as f:
+        lines = f.readlines()
+        while lines[-1] == "\n":
+            lines.pop(-1)
+        with open(target, mode='w') as wf:
+            wf.writelines(lines)
+    logger.debug("done!")
 
 def rename_notes_with_links(files):
     '''Rename the all file names to UID and update wikilinks to Markdownlinks'''
