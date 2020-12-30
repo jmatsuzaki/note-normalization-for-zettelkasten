@@ -27,7 +27,7 @@ Just run "normalization_zettel.py".
 The first argument is the root folder of Zettelkasten.
 
 ```
-python normalization_zettel.py /path/to/your/zettelkasten/root
+python normalization_zettel.py /path/to/your/zettelkasten_root_folder
 ```
 
 ## Note
@@ -36,14 +36,14 @@ This program is mainly designed to fix my Zettelkasten, so if you use it, please
 
 You can check the results of the program execution in the "debug.log" file in the same folder.
 
-It is recommended that you first copy all of your Zettelkasten and run a test run in the copied folder. Then check the file after the run and make sure the notes are modified as expected.
+It is recommended that you first copy all of your Zettelkasten and test run in the copied folder. Then check the file after the run and make sure the notes are modified as expected in copied folder.
 
 It is strongly recommended to back up Zettelkasten using a mechanism such as git, even when running on production data. Not only should you be able to revert to the pre-run data, but you should also be able to see the differences for each file, like in Git diff, and repair them if necessary.
 
 ## Future works (TODO)
 
 - Windows and Linux support
-- Specify the file list
+- Specify the file
 - Toml and json Front Matter support
 
 ## Author
