@@ -114,7 +114,7 @@ def check_and_create_yfm(files):
                     if not update_flg:
                         update_flg = True
                     if key == 'title':
-                        this_YFM[key] = os.path.splitext(os.path.basename(create_yfm_file))[0]
+                        this_YFM[key] = get_file_name(update_yfm_file)[0]
                     elif key == 'aliases':
                         this_YFM[key] = "[]"
                     elif key == 'date':
@@ -124,7 +124,7 @@ def check_and_create_yfm(files):
                     elif key == 'tags':
                         this_YFM[key] = create_tag_line_from_lines(lines)
                     elif key == 'draft':
-                        if os.path.basename(os.path.dirname(update_yfm_file)) in INBOX_DIR:
+                        if get_dir_name(update_yfm_file)[1] in INBOX_DIR:
                             this_YFM[key] = "true"
                         else:
                             this_YFM[key] = "false"
@@ -150,14 +150,12 @@ def check_and_create_yfm(files):
             lines = f.readlines()
             tag_line = create_tag_line_from_lines(lines)
             logger.debug("insert YFM...")
-            date_value = datetime.datetime.fromtimestamp(os.stat(create_yfm_file).st_birthtime)
-            update_value = datetime.datetime.fromtimestamp(os.path.getmtime(create_yfm_file))
             this_YFM = YFM
-            this_YFM['title'] = os.path.splitext(os.path.basename(create_yfm_file))[0]
+            this_YFM['title'] = get_file_name(create_yfm_file)[0]
             this_YFM['date'] = format_date(get_creation_date(create_yfm_file))
             this_YFM['update'] = format_date(get_modification_date(create_yfm_file))
             this_YFM['tags'] = tag_line
-            if os.path.basename(os.path.dirname(create_yfm_file)) in INBOX_DIR:
+            if get_dir_name(create_yfm_file)[1] in INBOX_DIR:
                 this_YFM['draft'] = "true"
             else:
                 this_YFM['draft'] = "false"
@@ -176,10 +174,30 @@ def check_and_create_yfm(files):
             processing_file_cnt += 1 # Counting the number of files processed
     logger.debug(str(processing_file_cnt) + 'files have been updated!\n')
 
+def get_file_name(file_path):
+    '''Retrieves a file name from the specified path. The format of the return value is as below:
+        ('filename.ext', 'filename', '.ext')'''
+    fullname = os.path.basename(file_path)
+    name = os.path.splitext(fullname)[0]
+    ext = os.path.splitext(fullname)[1]
+    return (fullname, name, ext)
+
+def get_dir_name(file_path):
+    '''Retrieves a folder name from the specified path. The format of the return value is as below:
+        ('fullpath', 'basepath')'''
+    fullpath = os.path.dirname(file_path)
+    basepath = os.path.basename(fullpath)
+    return (fullpath, basepath)
+
 def format_date(unix_time):
     '''format unix time to %Y-%m-%d %H:%M:%S'''
     date_value = datetime.datetime.fromtimestamp(unix_time)
     return date_value.strftime('%Y-%m-%d %H:%M:%S')
+
+def format_uid_from_date(unix_time):
+    '''format unix time to yyyymmddhhmmss'''
+    date_value = datetime.datetime.fromtimestamp(unix_time)
+    return date_value.strftime('%Y%m%d%H%M%S')
 
 def get_creation_date(file):
     '''Try to get the date that a file was created, falling back to when it was
@@ -242,9 +260,10 @@ def rename_notes_with_links(files):
             # add UID to top of YFM
             with open(new_file_path_result) as f:
                 lines = f.readlines()
-                lines.insert(1, "uid: " + str(os.path.splitext(os.path.basename(new_file_path_result))[0]) + "\n")
+                lines.insert(1, "uid: " + get_file_name(new_file_path_result)[1] + "\n")
                 with open(new_file_path_result, mode='w') as wf:
                     wf.writelines(lines)
+            # Replace backlinks
             if substitute_wikilinks_to_markdown_links(file, new_file_path_result):
                 substitute_file_cnt += 1
     logger.debug(str(rename_file_cnt) + 'files have been renamed!\n')
@@ -266,21 +285,21 @@ def rename_images_with_links(files):
             os.rename(file, new_file_path)
             rename_file_cnt += 1
             logger.debug("rename: " + new_file_path)
+            # Replace backlinks
             if substitute_wikilinks_to_markdown_links(file, new_file_path):
                 substitute_file_cnt += 1
     logger.debug(str(rename_file_cnt) + ' files have been renamed!')
     logger.debug(str(substitute_file_cnt) + ' linked files have been updated!\n')
 
 def check_note_has_uid(file):
-    file_title = os.path.splitext(os.path.basename(file))[0]
+    file_title = get_file_name(file)[1]
     return re.match('^\d{14}$', file_title)
 
 def get_new_filepath_with_uid(file):
     '''get new filepath with uid'''
     # UID is yyyymmddhhmmss from create date
-    uid = datetime.datetime.fromtimestamp(os.stat(file).st_birthtime)
-    uid = int(uid.strftime('%Y%m%d%H%M%S'))
-    ext = os.path.splitext(os.path.basename(file))[1]
+    uid = int(format_uid_from_date(get_creation_date(file)))
+    ext = get_file_name(file)[2]
     if ext == '.md':
         path = ROOT_PATH
     else:
@@ -296,9 +315,8 @@ def build_filepath_by_uid(uid, path, ext='.md'):
 def substitute_wikilinks_to_markdown_links(old_file_path, new_file_path):
     '''substitute wikilinks to markdown links'''
     # build file info
-    old_file_title = os.path.splitext(os.path.basename(old_file_path))[0]
-    old_file_ext = os.path.splitext(os.path.basename(old_file_path))[1]
-    new_file_link = os.path.basename(new_file_path)
+    old_file_names = get_file_name(old_file_path)
+    new_file_link = get_file_name(new_file_path)[0]
     logger.debug("substitute Wikilinks...")
     update_link_files = get_files('note')
     check_substitute_flg = False # Whether it has been replaced or not
@@ -312,7 +330,7 @@ def substitute_wikilinks_to_markdown_links(old_file_path, new_file_path):
             lines = f.readlines()
             for i, line in enumerate(lines):
                 # Replace the target Wikilinks if any
-                match = re.search('\[\[(' + old_file_title + '(' + old_file_ext + ')?'+ '(\s\|\s(.+))?)\]\]', line)
+                match = re.search('\[\[(' + old_file_names[1] + '(' + old_file_names[2] + ')?'+ '(\s\|\s(.+))?)\]\]', line)
                 if match:
                     logger.debug("match: " + update_link_file)
                     logger.debug("substitute: " + match.group(0))
