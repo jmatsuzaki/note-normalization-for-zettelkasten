@@ -64,7 +64,7 @@ def check_and_create_yfm(files):
     update_yfm_files = [] # if note have YFM
     create_yfm_files = [] # if note doesn't have YFM
     # check and classify files by exists YFM
-    for file in files:
+    for i, file in enumerate(files):
         logger.debug('Checking YFM...')
         logger.debug("target: " + file)
         # create target file list
@@ -77,10 +77,11 @@ def check_and_create_yfm(files):
             else: 
                 create_yfm_files.append(file)
                 logger.debug("No YFM yet")
+        logger.debug("check done! [" + str(i+1) + "/" + str(len(files)) + "]\n")
     logger.debug('====== Start Update YFM ======')
     logger.debug('the target is: ' + str(len(update_yfm_files)) + ' files\n')
     processing_file_cnt = 0 # Counting the number of files processed
-    for update_yfm_file in update_yfm_files:
+    for i, update_yfm_file in enumerate(update_yfm_files):
         logger.debug("Updating YFM...")
         logger.debug("target: " + update_yfm_file)
         this_YFM = YFM
@@ -139,11 +140,12 @@ def check_and_create_yfm(files):
                 processing_file_cnt += 1
             else:
                 logger.debug("There is no YFM to update")
+        logger.debug("processing done! [" + str(i+1) + "/" + str(len(update_yfm_files)) + "]\n")
     logger.debug(str(processing_file_cnt) + ' files have been updated!\n')
     logger.debug('====== Start Add New YFM ======')
     logger.debug('the target is: ' + str(len(create_yfm_files)) + ' files\n')
     processing_file_cnt = 0 # Counting the number of files processed
-    for create_yfm_file in create_yfm_files:
+    for i, create_yfm_file in enumerate(create_yfm_files):
         logger.debug("Creating YFM...")
         logger.debug("target: " + create_yfm_file)
         with open(create_yfm_file) as f:
@@ -172,6 +174,7 @@ def check_and_create_yfm(files):
             # writing header
             writing_lines_without_hashtags(create_yfm_file, lines)
             processing_file_cnt += 1 # Counting the number of files processed
+        logger.debug("processing done! [" + str(i+1) + "/" + str(len(create_yfm_files)) + "]\n")
     logger.debug(str(processing_file_cnt) + 'files have been updated!\n')
 
 def get_file_name(file_path):
@@ -237,7 +240,7 @@ def writing_lines_without_hashtags(target, lines):
             # Delete the hashtag line
             if not re.match("^\#[^\#|^\s].+", line):
                 wf.write(line)
-        logger.debug("done!\n")
+        logger.debug("done!")
 
 def rename_notes_with_links(files):
     '''Rename the all file names to UID and update wikilinks to Markdownlinks'''
@@ -245,7 +248,7 @@ def rename_notes_with_links(files):
     logger.debug('the target is: ' + str(len(files)) + ' files\n')
     rename_file_cnt = 0 # Counting the number of files processed
     substitute_file_cnt = 0 # Number of files with links
-    for file in files: 
+    for i, file in enumerate(files): 
         logger.debug("target: " + file)
         if check_note_has_uid(file):
             logger.debug("It seems that this file already has a UID\n")
@@ -266,7 +269,8 @@ def rename_notes_with_links(files):
             # Replace backlinks
             if substitute_wikilinks_to_markdown_links(file, new_file_path_result):
                 substitute_file_cnt += 1
-    logger.debug(str(rename_file_cnt) + 'files have been renamed!\n')
+        logger.debug("processing done! [" + str(i+1) + "/" + str(len(files)) + "]\n")
+    logger.debug(str(rename_file_cnt) + ' files have been renamed!\n')
     logger.debug(str(substitute_file_cnt) + 'linked files have been updated!\n')
 
 def rename_images_with_links(files):
@@ -274,7 +278,7 @@ def rename_images_with_links(files):
     logger.debug('the target is: ' + str(len(files)) + ' files\n')
     rename_file_cnt = 0 # Counting the number of files processed
     substitute_file_cnt = 0 # Number of files with links
-    for file in files:
+    for i, file in enumerate(files): 
         logger.debug("target: " + file)
         if check_note_has_uid(file):
             logger.debug("It seems that this file already has a UID\n")
@@ -288,6 +292,7 @@ def rename_images_with_links(files):
             # Replace backlinks
             if substitute_wikilinks_to_markdown_links(file, new_file_path):
                 substitute_file_cnt += 1
+        logger.debug("processing done! [" + str(i+1) + "/" + str(len(files)) + "]\n")
     logger.debug(str(rename_file_cnt) + ' files have been renamed!')
     logger.debug(str(substitute_file_cnt) + ' linked files have been updated!\n')
 
@@ -351,7 +356,7 @@ def substitute_wikilinks_to_markdown_links(old_file_path, new_file_path):
                 substitute_file_cnt += 1
     logger.debug(str(substitute_line_cnt) + " lines replaced!")
     logger.debug("The link that existed in file " + str(substitute_file_cnt) + " has been updated!")
-    logger.debug("done!\n")
+    logger.debug("done!")
     return check_substitute_flg
 
 def query_yes_no(question, default="yes"):
