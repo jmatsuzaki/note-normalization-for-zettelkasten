@@ -1,4 +1,4 @@
-import sys, shutil, os, datetime, re, platform, logging
+import sys, shutil, os, datetime, re, platform, logging, unicodedata
 # setup logger
 logging.basicConfig(
     level=logging.DEBUG,
@@ -180,7 +180,7 @@ def check_and_create_yfm(files):
 def get_file_name(file_path):
     '''Retrieves a file name from the specified path. The format of the return value is as below:
         ('filename.ext', 'filename', '.ext')'''
-    fullname = os.path.basename(file_path)
+    fullname = unicodedata.normalize("NFC", os.path.basename(file_path))
     name = os.path.splitext(fullname)[0]
     ext = os.path.splitext(fullname)[1]
     return (fullname, name, ext)
@@ -188,7 +188,7 @@ def get_file_name(file_path):
 def get_dir_name(file_path):
     '''Retrieves a folder name from the specified path. The format of the return value is as below:
         ('fullpath', 'basepath')'''
-    fullpath = os.path.dirname(file_path)
+    fullpath = unicodedata.normalize("NFC", os.path.dirname(file_path))
     basepath = os.path.basename(fullpath)
     return (fullpath, basepath)
 
