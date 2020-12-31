@@ -341,7 +341,7 @@ def substitute_wikilinks_to_markdown_links(old_file_path, new_file_path):
             lines = f.readlines()
             for i, line in enumerate(lines):
                 # Replace the target Wikilinks if any
-                match = re.search('\[\[(' + old_file_names[1] + '(' + old_file_names[2] + ')?'+ '(\s\|\s(.+))?)\]\]', line)
+                match = re.search('\[\[(' + re.escape(old_file_names[1]) + '(' + re.escape(old_file_names[2]) + ')?'+ '(\s\|\s(.+))?)\]\]', line)
                 if match:
                     logger.debug("match: " + update_link_file)
                     logger.debug("substitute: " + match.group(0))
