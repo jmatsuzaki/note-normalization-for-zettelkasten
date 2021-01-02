@@ -39,7 +39,7 @@ def get_files(start_path, type):
     '''Retrieves a file of the specified path and type'''
     files = []
     if os.path.isfile(start_path):
-        check_note_type(start_path, type):
+        if check_note_type(start_path, type):
             files.append(start_path)
     else:
         # get all files
@@ -272,6 +272,8 @@ def rename_notes_with_links(files):
             continue
         else:
             new_file_path = get_new_filepath_with_uid(file)
+            uid = get_file_name(new_file_path)[1]
+            logger.debug("uid: " + uid)
             logger.debug("rename: " + new_file_path)
             # rename and move ROOT PATH
             new_file_path_result = shutil.move(file, new_file_path)
@@ -279,8 +281,9 @@ def rename_notes_with_links(files):
             rename_file_cnt += 1
             # add UID to top of YFM
             with open(new_file_path_result) as f:
+                logger.debug("Insert UID into Yaml FrontMatter")
                 lines = f.readlines()
-                lines.insert(1, "uid: " + get_file_name(new_file_path_result)[1] + "\n")
+                lines.insert(1, "uid: " + uid + "\n")
                 with open(new_file_path_result, mode='w') as wf:
                     wf.writelines(lines)
             # Replace backlinks
@@ -303,6 +306,8 @@ def rename_images_with_links(files):
         else:
             # rename image
             new_file_path = get_new_filepath_with_uid(file)
+            uid = get_file_name(new_file_path)[1]
+            logger.debug("uid: " + uid)
             os.rename(file, new_file_path)
             rename_file_cnt += 1
             logger.debug("rename: " + new_file_path)
@@ -322,7 +327,7 @@ def get_new_filepath_with_uid(file):
     # UID is yyyymmddhhmmss from create date
     uid = int(format_uid_from_date(get_creation_date(file)))
     ext = get_file_name(file)[2]
-    # Target path to check for duplicate UIDs
+    # Target path to check for duplicate UID
     if ext == '.md':
         path = ROOT_PATH
     else:
@@ -438,7 +443,7 @@ if __name__ == '__main__':
             logger.critical('The specified folder or file does not seem to exist')
             logger.critical('Abort the process')
             sys.exit()
-        if os.path.isexists(argv[2]):
+        if os.path.exists(argv[2]):
             logger.debug('2: Target has been specified')
             logger.debug('The existence of this has been confirmed!')
         else:
