@@ -35,27 +35,38 @@ EXECUTION_FUNCTION_LIST = {
 }
 
 # === Start the process ===
-def get_files(type):
-    '''Retrieves a file of the specified type'''
+def get_files(start_path, type):
+    '''Retrieves a file of the specified path and type'''
     files = []
-    # get all files
-    for pathname, dirnames, filenames in os.walk(ROOT_PATH, topdown=True):
-        # exclude dir and files
-        dirnames[:] = list(filter(lambda d: not d in EXCLUDE_DIR, dirnames))
-        filenames[:] = list(filter(lambda f: not f in EXCLUDE_FILE, filenames))
-        dirnames[:] = list(filter(lambda d: not d[0] == '.', dirnames)) # Hidden directory beginning with "."
-        filenames[:] = list(filter(lambda f: not f[0] == '.', filenames)) # Hidden files beginning with "."
-        for filename in filenames:
-            # Filtering files
-            if type == 'note':
-                if filename.endswith(tuple(NOTE_EXT)):
+    if os.path.isfile(start_path):
+        check_note_type(start_path, type):
+            files.append(start_path)
+    else:
+        # get all files
+        for pathname, dirnames, filenames in os.walk(start_path, topdown=True):
+            # exclude dir and files
+            dirnames[:] = list(filter(lambda d: not d in EXCLUDE_DIR, dirnames))
+            filenames[:] = list(filter(lambda f: not f in EXCLUDE_FILE, filenames))
+            dirnames[:] = list(filter(lambda d: not d[0] == '.', dirnames)) # Hidden directory beginning with "."
+            filenames[:] = list(filter(lambda f: not f[0] == '.', filenames)) # Hidden files beginning with "."
+            for filename in filenames:
+                file_path = os.path.join(pathname,filename)
+                if check_note_type(file_path, type):
                     # append target notes to array
-                    files.append(os.path.join(pathname,filename))
-            if type == 'image':
-                if filename.endswith(tuple(IMG_EXT)):
-                    # append target notes to array
-                    files.append(os.path.join(pathname,filename))
+                    files.append(file_path)
     return files
+
+def check_note_type(file_path, type):
+    '''Check if the specified file has an extension of the specified type'''
+    if type == 'note':
+        target_ext = tuple(NOTE_EXT)
+    elif type == 'image':
+        target_ext = tuple(IMG_EXT)
+    # Filtering files
+    if file_path.endswith(target_ext):
+        return True
+    else:
+        return False
 
 def check_and_create_yfm(files):
     '''If there is no YFM, create one.'''
@@ -311,6 +322,7 @@ def get_new_filepath_with_uid(file):
     # UID is yyyymmddhhmmss from create date
     uid = int(format_uid_from_date(get_creation_date(file)))
     ext = get_file_name(file)[2]
+    # Target path to check for duplicate UIDs
     if ext == '.md':
         path = ROOT_PATH
     else:
@@ -329,7 +341,7 @@ def substitute_wikilinks_to_markdown_links(old_file_path, new_file_path):
     old_file_names = get_file_name(old_file_path)
     new_file_link = get_file_name(new_file_path)[0]
     logger.debug("substitute Wikilinks...")
-    update_link_files = get_files('note')
+    update_link_files = get_files(ROOT_PATH, 'note')
     check_substitute_flg = False # Whether it has been replaced or not
     # check all notes links
     logger.debug("checking " + str(len(update_link_files)) + " files...")
@@ -398,23 +410,49 @@ if __name__ == '__main__':
     logger.debug('Welcome to Note normalization for Zettelkasten!')
     logger.debug('=================================================\n')
     argv = sys.argv
-    # Specify the target folder
-    if len(argv) > 1:
-        logger.debug('Arguments received')
-        path = argv[1]
-        if os.path.isdir(path):
+    # Specify the current directory
+    if len(argv) == 1:
+        logger.debug('no arguments. Target the current directory')
+        ROOT_PATH = os.getcwd()
+        TARGET_PATH = os.getcwd()
+    # Specify the Zettelkasten Root folder
+    if len(argv) == 2:
+        logger.debug('1 Arguments received')
+        if os.path.isdir(argv[1]):
+            logger.debug('Folder has been specified')
             logger.debug('The existence of the folder has been confirmed!')
+            logger.debug('Set the specified folder as the root folder of Zettelkasten and process all files under it')
         else:
-            logger.debug('The specified folder does not seem to exist.')
-    else:
-        logger.debug('no arguments. Target the current directory.')
-        path = os.getcwd()
-    logger.debug('Zettelkasten ROOT PATH is: ' + path)
-    logger.debug('Can I normalize the notes in this folder?')
+            logger.critical('The specified folder or file does not seem to exist')
+            logger.critical('Abort the process')
+            sys.exit()
+        ROOT_PATH, TARGET_PATH = argv[1]
+    # Specify the target file
+    elif len(argv) == 3: 
+        logger.debug('2 Arguments received')
+        if os.path.isdir(argv[1]):
+            logger.debug('1: Zettelkasten\'s Root Folder has been specified')
+            logger.debug('The existence of the folder has been confirmed!')
+            logger.debug('Set the specified folder as the root folder of Zettelkasten')
+        else:
+            logger.critical('The specified folder or file does not seem to exist')
+            logger.critical('Abort the process')
+            sys.exit()
+        if os.path.isexists(argv[2]):
+            logger.debug('2: Target has been specified')
+            logger.debug('The existence of this has been confirmed!')
+        else:
+            logger.critical('The specified folder or file does not seem to exist.')
+            logger.critical('Abort the process')
+            sys.exit()
+        ROOT_PATH = argv[1]
+        TARGET_PATH = argv[2]
+    logger.info('Zettelkasten ROOT PATH is: ' + ROOT_PATH)
+    logger.info('Normalize TARGET PATH is: ' + TARGET_PATH)
+    logger.debug('Can I normalize these notes?')
     # Confirmation to the user
-    if query_yes_no(path):
+    if query_yes_no('Can I normalize these notes?'):
         logger.debug('okay. Continue processing')
-        ROOT_PATH = path
     else:
         logger.debug('okay. Abort the process')
         sys.exit()
@@ -428,19 +466,21 @@ if __name__ == '__main__':
     on_off_text = ['ON', 'OFF']
     for key in EXECUTION_FUNCTION_LIST:
         if EXECUTION_FUNCTION_LIST[key]:
-            logger.debug(function_desc[key] + on_off_text[0])
+            logger.info(function_desc[key] + on_off_text[0])
         else:
-            logger.debug(function_desc[key] + on_off_text[1])
-    if not query_yes_no('\nAre you sure you want to perform the above functions?'):
+            logger.info(function_desc[key] + on_off_text[1])
+    if query_yes_no('\nAre you sure you want to perform the above functions?'):
+        logger.debug('okay. Continue processing')
+    else:
         logger.debug('okay. Abort the process')
         sys.exit()
     # Execute an enabled process
     if EXECUTION_FUNCTION_LIST["function_create_yfm"]:
-        check_and_create_yfm(get_files('note'))
+        check_and_create_yfm(get_files(TARGET_PATH, 'note'))
     if EXECUTION_FUNCTION_LIST["function_rename_notes"]:
-        rename_notes_with_links(get_files('note'))
+        rename_notes_with_links(get_files(TARGET_PATH, 'note'))
     if EXECUTION_FUNCTION_LIST["function_rename_images"]: 
-        rename_images_with_links(get_files('image'))
+        rename_images_with_links(get_files(TARGET_PATH, 'image'))
     # finish!
     logger.debug('All processing is complete!')
     logger.debug('The execution log was saved to a log file. please see ./debug.log files.\n')
