@@ -117,7 +117,7 @@ def check_and_create_yfm(files):
                     break
                 for key in check_YFM:
                     if re.match("^" + key + ": ", line):
-                        check_YFM[key] = True
+                        check_YFM[key] = i
             update_flg = False # Check to see if it has been processed
             # Adding an item
             for key in check_YFM:
@@ -143,6 +143,10 @@ def check_and_create_yfm(files):
                     # Add an element to the end of the header
                     lines.insert(end_of_yfm, key + ': ' + this_YFM[key] + '\n')
                     end_of_yfm += 1
+            #updating an item
+            if str(check_YFM["update"]).isdecimal():
+                del lines[check_YFM["update"]]
+                lines.insert(check_YFM["update"], 'update: ' + format_date(get_modification_date(update_yfm_file)) + '\n')
             # writing header
             writing_lines_without_hashtags(update_yfm_file, lines)
             # Count the number of files processed.
@@ -418,8 +422,7 @@ if __name__ == '__main__':
     # Specify the current directory
     if len(argv) == 1:
         logger.debug('no arguments. Target the current directory')
-        ROOT_PATH = os.getcwd()
-        TARGET_PATH = os.getcwd()
+        ROOT_PATH = TARGET_PATH = os.getcwd()
     # Specify the Zettelkasten Root folder
     if len(argv) == 2:
         logger.debug('1 Arguments received')
@@ -431,7 +434,7 @@ if __name__ == '__main__':
             logger.critical('The specified folder or file does not seem to exist')
             logger.critical('Abort the process')
             sys.exit()
-        ROOT_PATH, TARGET_PATH = argv[1]
+        ROOT_PATH = TARGET_PATH = argv[1]
     # Specify the target file
     elif len(argv) == 3: 
         logger.debug('2 Arguments received')
