@@ -11,7 +11,11 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # setup parser
-parser = argparse.ArgumentParser(description='note normalization for Zettelkasten') 
+parser = argparse.ArgumentParser(
+    description='This program will normalize Markdown notes for Zettelkasten',
+    epilog='This program will add Yaml Front Matter, add UIDs and rename files, replace Wikilink with Markdown link, etc.\nFurther details can be found in the repository. See below:\n\nhttps://github.com/jmatsuzaki/note-normalization-for-zettelkasten',
+    formatter_class=argparse.RawTextHelpFormatter
+) 
 parser.add_argument('root', help='Zettelkasten\'s root folder')
 parser.add_argument('-t', '--target', help='normalization target folder or file')
 parser.add_argument('-y', '--yes', help='automatically answer yes to all questions')
@@ -448,13 +452,16 @@ if __name__ == '__main__':
             sys.exit()
     logger.info('Zettelkasten ROOT PATH is: ' + ROOT_PATH)
     logger.info('Normalize TARGET PATH is: ' + TARGET_PATH)
-    logger.debug('Can I normalize these notes?')
-    # Confirmation to the user
-    if query_yes_no('Can I normalize these notes?'):
-        logger.debug('okay. Continue processing')
+    if args.yes:
+        logger.info('--yes option has been specified, continue processing automatically')
     else:
-        logger.debug('okay. Abort the process')
-        sys.exit()
+        logger.info('Can I normalize these notes?')
+        # Confirmation to the user
+        if query_yes_no('Can I normalize these notes?'):
+            logger.info('okay. Continue processing')
+        else:
+            logger.info('okay. Abort the process')
+            sys.exit()
     # Confirm the function to be performed
     logger.debug('Checking the process to be executed\n')
     function_desc = {
@@ -468,11 +475,14 @@ if __name__ == '__main__':
             logger.info(function_desc[key] + on_off_text[0])
         else:
             logger.info(function_desc[key] + on_off_text[1])
-    if query_yes_no('\nAre you sure you want to perform the above functions?'):
-        logger.debug('okay. Continue processing')
+    if args.yes:
+        logger.info('--yes option has been specified, continue processing automatically')
     else:
-        logger.debug('okay. Abort the process')
-        sys.exit()
+        if query_yes_no('\nAre you sure you want to perform the above functions?'):
+            logger.info('okay. Continue processing')
+        else:
+            logger.info('okay. Abort the process')
+            sys.exit()
     # Execute an enabled process
     if EXECUTION_FUNCTION_LIST["function_create_yfm"]:
         check_and_create_yfm(get_files(TARGET_PATH, 'note'))
@@ -481,6 +491,6 @@ if __name__ == '__main__':
     if EXECUTION_FUNCTION_LIST["function_rename_images"]: 
         rename_images_with_links(get_files(TARGET_PATH, 'image'))
     # finish!
-    logger.debug('All processing is complete!')
-    logger.debug('The execution log was saved to a log file. please see ./debug.log files.\n')
-    logger.debug('Enjoy building your SECOND BRAIN!')
+    logger.info('All processing is complete!')
+    logger.info('The execution log was saved to a log file. please see ./debug.log files.\n')
+    logger.info('Enjoy building your SECOND BRAIN!')
