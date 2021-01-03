@@ -1,4 +1,4 @@
-import sys, shutil, os, datetime, re, platform, logging, unicodedata
+import sys, shutil, os, datetime, re, platform, logging, unicodedata, argparse
 # setup logger
 logging.basicConfig(
     level=logging.DEBUG,
@@ -9,6 +9,13 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+
+# setup parser
+parser = argparse.ArgumentParser(description='note normalization for Zettelkasten') 
+parser.add_argument('root', help='Zettelkasten\'s root folder')
+parser.add_argument('-t', '--target', help='normalization target folder or file')
+parser.add_argument('-y', '--yes', help='automatically answer yes to all questions')
+args = parser.parse_args()
 
 # === Setting section ===
 INBOX_DIR = ['Inbox', 'Draft', 'Pending'] # The files in this folder will have the YFM draft key set to true
@@ -418,43 +425,27 @@ if __name__ == '__main__':
     logger.debug('=================================================')
     logger.debug('Welcome to Note normalization for Zettelkasten!')
     logger.debug('=================================================\n')
-    argv = sys.argv
-    # Specify the current directory
-    if len(argv) == 1:
-        logger.debug('no arguments. Target the current directory')
-        ROOT_PATH = TARGET_PATH = os.getcwd()
+    # Argument Retrieval
     # Specify the Zettelkasten Root folder
-    if len(argv) == 2:
-        logger.debug('1 Arguments received')
-        if os.path.isdir(argv[1]):
-            logger.debug('Folder has been specified')
-            logger.debug('The existence of the folder has been confirmed!')
-            logger.debug('Set the specified folder as the root folder of Zettelkasten and process all files under it')
-        else:
-            logger.critical('The specified folder or file does not seem to exist')
-            logger.critical('Abort the process')
-            sys.exit()
-        ROOT_PATH = TARGET_PATH = argv[1]
+    if os.path.isdir(args.root):
+        logger.debug('Folder has been specified')
+        logger.debug('The existence of the folder has been confirmed!')
+        logger.debug('Set the specified folder as the root folder of Zettelkasten and process all files under it')
+        ROOT_PATH = args.root
+    else:
+        logger.critical('The specified folder or file does not seem to exist')
+        logger.critical('Abort the process')
+        sys.exit()
     # Specify the target file
-    elif len(argv) == 3: 
-        logger.debug('2 Arguments received')
-        if os.path.isdir(argv[1]):
-            logger.debug('1: Zettelkasten\'s Root Folder has been specified')
-            logger.debug('The existence of the folder has been confirmed!')
-            logger.debug('Set the specified folder as the root folder of Zettelkasten')
-        else:
-            logger.critical('The specified folder or file does not seem to exist')
-            logger.critical('Abort the process')
-            sys.exit()
-        if os.path.exists(argv[2]):
-            logger.debug('2: Target has been specified')
+    if args.target:
+        logger.debug('Target has been specified')
+        TARGET_PATH = args.target
+        if os.path.exists(TARGET_PATH):
             logger.debug('The existence of this has been confirmed!')
         else:
             logger.critical('The specified folder or file does not seem to exist.')
             logger.critical('Abort the process')
             sys.exit()
-        ROOT_PATH = argv[1]
-        TARGET_PATH = argv[2]
     logger.info('Zettelkasten ROOT PATH is: ' + ROOT_PATH)
     logger.info('Normalize TARGET PATH is: ' + TARGET_PATH)
     logger.debug('Can I normalize these notes?')
