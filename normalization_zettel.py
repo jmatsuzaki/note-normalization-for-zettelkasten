@@ -18,7 +18,7 @@ parser = argparse.ArgumentParser(
 ) 
 parser.add_argument('root', help='Zettelkasten\'s root folder')
 parser.add_argument('-t', '--target', help='normalization target folder or file')
-parser.add_argument('-y', '--yes', help='automatically answer yes to all questions')
+parser.add_argument('-y', '--yes', action='store_true', help='automatically answer yes to all questions')
 args = parser.parse_args()
 
 # === Setting section ===
@@ -375,7 +375,7 @@ def substitute_wikilinks_to_markdown_links(old_file_path, new_file_path):
                 # Replace the target Wikilinks if any
                 match = re.search('\[\[(' + re.escape(old_file_names[1]) + '(' + re.escape(old_file_names[2]) + ')?'+ '(\s\|\s(.+))?)\]\]', line)
                 if match:
-                    logger.debug("match: " + update_link_file)
+                    logger.debug("Wikilink match: " + update_link_file)
                     logger.debug("substitute: " + match.group(0))
                     if not check_substitute_flg:
                         check_substitute_flg = True
@@ -387,6 +387,18 @@ def substitute_wikilinks_to_markdown_links(old_file_path, new_file_path):
                         lines[i] = line.replace(match.group(0), '[' + match.group(4) + '](' + new_file_link + ')')
                     else:
                         lines[i] = line.replace(match.group(0), '[' + match.group(1) + '](' + new_file_link + ')')
+                    logger.debug(lines[i])
+                # Replace the target Markdownlinks if any
+                match = re.search('\[.+\]\(((?!http.*).*' + re.escape(old_file_names[0]) + ')\)' , line)
+                if match:
+                    logger.debug("Markdown link match: " + update_link_file)
+                    logger.debug("substitute: " + match.group(0))
+                    if not check_substitute_flg:
+                        check_substitute_flg = True
+                    if not substitute_flg:
+                        substitute_flg = True
+                    substitute_line_cnt += 1
+                    lines[i] = line.replace(match.group(1), new_file_link)
                     logger.debug(lines[i])
             with open(update_link_file, mode='w') as wf:
                 wf.writelines(lines)
@@ -437,7 +449,7 @@ if __name__ == '__main__':
         logger.debug('Set the specified folder as the root folder of Zettelkasten and process all files under it')
         ROOT_PATH = args.root
     else:
-        logger.critical('The specified folder or file does not seem to exist')
+        logger.critical('The specified root folder or file does not seem to exist')
         logger.critical('Abort the process')
         sys.exit()
     # Specify the target file
@@ -447,9 +459,11 @@ if __name__ == '__main__':
         if os.path.exists(TARGET_PATH):
             logger.debug('The existence of this has been confirmed!')
         else:
-            logger.critical('The specified folder or file does not seem to exist.')
+            logger.critical('The specified target folder or file does not seem to exist.')
             logger.critical('Abort the process')
             sys.exit()
+    else:
+        TARGET_PATH = args.root
     logger.info('Zettelkasten ROOT PATH is: ' + ROOT_PATH)
     logger.info('Normalize TARGET PATH is: ' + TARGET_PATH)
     if args.yes:
