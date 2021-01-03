@@ -103,7 +103,7 @@ def check_and_create_yfm(files):
     logger.debug('====== Start Update YFM ======')
     logger.debug('the target is: ' + str(len(update_yfm_files)) + ' files\n')
     processing_file_cnt = 0 # Counting the number of files processed
-    for i, update_yfm_file in enumerate(update_yfm_files):
+    for j, update_yfm_file in enumerate(update_yfm_files):
         logger.debug("Updating YFM...")
         logger.debug("target: " + update_yfm_file)
         this_YFM = YFM
@@ -166,7 +166,7 @@ def check_and_create_yfm(files):
                 processing_file_cnt += 1
             else:
                 logger.debug("There is no YFM to update")
-        logger.debug("processing done! [" + str(i+1) + "/" + str(len(update_yfm_files)) + "]\n")
+        logger.debug("processing done! [" + str(j+1) + "/" + str(len(update_yfm_files)) + "]\n")
     logger.debug(str(processing_file_cnt) + ' files have been updated!\n')
     logger.debug('====== Start Add New YFM ======')
     logger.debug('the target is: ' + str(len(create_yfm_files)) + ' files\n')
