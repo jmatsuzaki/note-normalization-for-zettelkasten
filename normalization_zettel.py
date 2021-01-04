@@ -1,12 +1,16 @@
 import sys, shutil, os, datetime, re, platform, logging, unicodedata, argparse
 # setup logger
+file_handler = logging.RotatingFileHandler(
+    "normalization_zettel.log",
+    maxBytes = 1000000
+),
+file_handler.setLevel(logging.DEBUG)
+stream_handler = logging.StreamHandler()
+stream_handler.setLevel(logging.INFO)
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[
-        logging.FileHandler("debug.log"),
-        logging.StreamHandler()
-    ]
+    handlers=[file_handler, stream_handler]
 )
 logger = logging.getLogger(__name__)
 
