@@ -510,5 +510,5 @@ if __name__ == '__main__':
         rename_images_with_links(get_files(TARGET_PATH, 'image'))
     # finish!
     logger.info('All processing is complete!')
-    logger.info('The execution log was saved to a log file. please see ./debug.log files.\n')
+    logger.info('The execution log was saved to a log file. please see ./normalization_zettel.log files.\n')
     logger.info('Enjoy building your SECOND BRAIN!')
