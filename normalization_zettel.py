@@ -99,8 +99,8 @@ def check_note_type(file_path, type):
 
 def check_and_create_yfm(files):
     '''If there is no YFM, create one.'''
-    logger.debug('====== Start Check YFM ======')
-    logger.debug('the target is: ' + str(len(files)) + ' files\n')
+    logger.info('====== Start Check YFM ======')
+    logger.info('the target is: ' + str(len(files)) + ' files\n')
     update_yfm_files = [] # if note have YFM
     create_yfm_files = [] # if note doesn't have YFM
     # check and classify files by exists YFM
@@ -117,9 +117,9 @@ def check_and_create_yfm(files):
             else: 
                 create_yfm_files.append(file)
                 logger.debug("No YFM yet")
-        logger.debug("check done! [" + str(i+1) + "/" + str(len(files)) + "]\n")
-    logger.debug('====== Start Update YFM ======')
-    logger.debug('the target is: ' + str(len(update_yfm_files)) + ' files\n')
+        logger.info("check done! [" + str(i+1) + "/" + str(len(files)) + "]\n")
+    logger.info('====== Start Update YFM ======')
+    logger.info('the target is: ' + str(len(update_yfm_files)) + ' files\n')
     processing_file_cnt = 0 # Counting the number of files processed
     for j, update_yfm_file in enumerate(update_yfm_files):
         logger.debug("Updating YFM...")
@@ -185,9 +185,9 @@ def check_and_create_yfm(files):
             else:
                 logger.debug("There is no YFM to update")
         logger.debug("processing done! [" + str(j+1) + "/" + str(len(update_yfm_files)) + "]\n")
-    logger.debug(str(processing_file_cnt) + ' files have been updated!\n')
-    logger.debug('====== Start Add New YFM ======')
-    logger.debug('the target is: ' + str(len(create_yfm_files)) + ' files\n')
+    logger.info(str(processing_file_cnt) + ' files have been updated!\n')
+    logger.info('====== Start Add New YFM ======')
+    logger.info('the target is: ' + str(len(create_yfm_files)) + ' files\n')
     processing_file_cnt = 0 # Counting the number of files processed
     for i, create_yfm_file in enumerate(create_yfm_files):
         logger.debug("Creating YFM...")
@@ -219,7 +219,7 @@ def check_and_create_yfm(files):
             writing_lines_without_hashtags(create_yfm_file, lines)
             processing_file_cnt += 1 # Counting the number of files processed
         logger.debug("processing done! [" + str(i+1) + "/" + str(len(create_yfm_files)) + "]\n")
-    logger.debug(str(processing_file_cnt) + 'files have been updated!\n')
+    logger.info(str(processing_file_cnt) + 'files have been updated!\n')
 
 def get_file_name(file_path):
     '''Retrieves a file name from the specified path. The format of the return value is as below:
@@ -294,8 +294,8 @@ def writing_lines_without_hashtags(target, lines):
 
 def rename_notes_with_links(files):
     '''Rename the all file names to UID and update wikilinks to Markdownlinks'''
-    logger.debug('====== Start Rename Notes And Substitute Wikilinks ======')
-    logger.debug('the target is: ' + str(len(files)) + ' files\n')
+    logger.info('====== Start Rename Notes And Substitute Wikilinks ======')
+    logger.info('the target is: ' + str(len(files)) + ' files\n')
     rename_file_cnt = 0 # Counting the number of files processed
     substitute_file_cnt = 0 # Number of files with links
     for i, file in enumerate(files): 
@@ -323,12 +323,12 @@ def rename_notes_with_links(files):
             if substitute_wikilinks_to_markdown_links(file, new_file_path_result):
                 substitute_file_cnt += 1
         logger.debug("processing done! [" + str(i+1) + "/" + str(len(files)) + "]\n")
-    logger.debug(str(rename_file_cnt) + ' files have been renamed!\n')
-    logger.debug(str(substitute_file_cnt) + 'linked files have been updated!\n')
+    logger.info(str(rename_file_cnt) + ' files have been renamed!\n')
+    logger.info(str(substitute_file_cnt) + 'linked files have been updated!\n')
 
 def rename_images_with_links(files):
-    logger.debug('====== Start Rename Images And Substitute Wikilinks ======')
-    logger.debug('the target is: ' + str(len(files)) + ' files\n')
+    logger.info('====== Start Rename Images And Substitute Wikilinks ======')
+    logger.info('the target is: ' + str(len(files)) + ' files\n')
     rename_file_cnt = 0 # Counting the number of files processed
     substitute_file_cnt = 0 # Number of files with links
     for i, file in enumerate(files): 
@@ -348,8 +348,8 @@ def rename_images_with_links(files):
             if substitute_wikilinks_to_markdown_links(file, new_file_path):
                 substitute_file_cnt += 1
         logger.debug("processing done! [" + str(i+1) + "/" + str(len(files)) + "]\n")
-    logger.debug(str(rename_file_cnt) + ' files have been renamed!')
-    logger.debug(str(substitute_file_cnt) + ' linked files have been updated!\n')
+    logger.info(str(rename_file_cnt) + ' files have been renamed!')
+    logger.info(str(substitute_file_cnt) + ' linked files have been updated!\n')
 
 def check_note_has_uid(file):
     file_title = get_file_name(file)[1]
@@ -456,15 +456,15 @@ def query_yes_no(question, default="yes"):
 # === Main process ===
 if __name__ == '__main__':
     '''This is the main process to implement the enabled features'''
-    logger.debug('=================================================')
-    logger.debug('Welcome to Note normalization for Zettelkasten!')
-    logger.debug('=================================================\n')
+    logger.info('=================================================')
+    logger.info('Welcome to Note normalization for Zettelkasten!')
+    logger.info('=================================================\n')
     # Argument Retrieval
     # Specify the Zettelkasten Root folder
     if os.path.isdir(args.root):
         logger.debug('Folder has been specified')
         logger.debug('The existence of the folder has been confirmed!')
-        logger.debug('Set the specified folder as the root folder of Zettelkasten and process all files under it')
+        logger.info('Set the specified folder as the root folder of Zettelkasten and process all files under it')
         ROOT_PATH = args.root
     else:
         logger.critical('The specified root folder or file does not seem to exist')
