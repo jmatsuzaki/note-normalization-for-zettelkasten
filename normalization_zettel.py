@@ -1,19 +1,32 @@
-import sys, shutil, os, datetime, re, platform, logging, unicodedata, argparse
+import sys, shutil, os, datetime, re, platform,  unicodedata, argparse
+import logging
+from logging import Formatter
+from logging.handlers import RotatingFileHandler
+
 # setup logger
-file_handler = logging.RotatingFileHandler(
+log_file_format = "%(asctime)s [%(levelname)s] %(message)s"
+log_console_format = "[%(levelname)s] %(message)s"
+# main logger
+logger = logging.getLogger(__name__)
+# console handler
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+console_handler.setFormatter(Formatter(log_console_format))
+# logger.addHandler(console_handler)
+file_handler = RotatingFileHandler(
     "normalization_zettel.log",
-    maxBytes = 1000000
-),
+    maxBytes = 1000000,
+    backupCount = 3
+)
 file_handler.setLevel(logging.DEBUG)
-stream_handler = logging.StreamHandler()
-stream_handler.setLevel(logging.INFO)
+file_handler.setFormatter(Formatter(log_file_format))
+
+# common config
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[file_handler, stream_handler]
+    handlers=[console_handler, file_handler]
 )
-logger = logging.getLogger(__name__)
-
 # setup parser
 parser = argparse.ArgumentParser(
     description='This program will normalize Markdown notes for Zettelkasten',
@@ -50,6 +63,7 @@ EXECUTION_FUNCTION_LIST = {
 }
 
 # === Start the process ===
+
 def get_files(start_path, type):
     '''Retrieves a file of the specified path and type'''
     files = []
