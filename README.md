@@ -36,15 +36,37 @@ Normalizing notes reduces dependence on tools and increases the flexibility and 
 ## Installation
 
 Download or clone this repository
+(It only needs normalization_zettel.py to work.)
 
 ## Usage
 
 Just run "normalization_zettel.py".
 The first argument is the root folder of Zettelkasten.
 
-```
+```zsh
 python normalization_zettel.py /path/to/your/zettelkasten_root_folder
 ```
+
+The following options can be specified.
+
+positional arguments:
+  root                         Zettelkasten's root folder
+
+optional arguments:
+  -h, --help                    show help message and exit
+  -t TARGET, --target TARGET    normalization target folder or file
+  -y, --yes                     automatically answer yes to all questions
+
+For example, if you put the following in the pre-commit hook of Git Hooks(.git/hooks/pre-commit), you can run this program only on the notes that have changed.
+
+```zsh
+git diff --cached --name-status | grep -e "^M" -e "^A" | while read a b; do
+  python3 /usr/local/bin/normalization_zettel.py /path/to/your/zettelkasten_root_folder -t "$b" -y
+  git add "$b"
+done
+```
+
+The execution log was saved to a log file. please see ./normalization_zettel.log files.
 
 ## Note
 
@@ -59,7 +81,6 @@ It is strongly recommended to back up Zettelkasten using a mechanism such as git
 ## Future works (TODO)
 
 - Windows and Linux support
-- Specify the file
 - Toml and json Front Matter support
 
 ## Author
