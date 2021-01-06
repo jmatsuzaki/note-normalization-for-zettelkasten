@@ -36,6 +36,7 @@ Normalizing notes reduces dependence on tools and increases the flexibility and 
 ## Installation
 
 Download or clone this repository
+
 (It only needs normalization_zettel.py to work.)
 
 ## Usage
@@ -49,13 +50,12 @@ python normalization_zettel.py /path/to/your/zettelkasten_root_folder
 
 The following options can be specified.
 
-positional arguments:
-  root                         Zettelkasten's root folder
-
-optional arguments:
-  -h, --help                    show help message and exit
-  -t TARGET, --target TARGET    normalization target folder or file
-  -y, --yes                     automatically answer yes to all questions
+- positional arguments
+  - root: Zettelkasten's root folder
+- optional arguments
+  - -h, --help: show help message and exit
+  - -t TARGET, --target TARGET: normalization target folder or file
+  - -y, --yes: automatically answer yes to all questions
 
 For example, if you put the following in the pre-commit hook of Git Hooks(.git/hooks/pre-commit), you can run this program only on the notes that have changed.
 
