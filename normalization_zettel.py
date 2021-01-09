@@ -3,30 +3,6 @@ import logging
 from logging import Formatter
 from logging.handlers import RotatingFileHandler
 
-# setup logger
-log_file_format = "%(asctime)s [%(levelname)s] %(message)s"
-log_console_format = "[%(levelname)s] %(message)s"
-# main logger
-logger = logging.getLogger(__name__)
-# console handler
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.INFO)
-console_handler.setFormatter(Formatter(log_console_format))
-# logger.addHandler(console_handler)
-file_handler = RotatingFileHandler(
-    "normalization_zettel.log",
-    maxBytes = 1000000,
-    backupCount = 3
-)
-file_handler.setLevel(logging.DEBUG)
-file_handler.setFormatter(Formatter(log_file_format))
-
-# common config
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[console_handler, file_handler]
-)
 # setup parser
 parser = argparse.ArgumentParser(
     description='This program will normalize Markdown notes for Zettelkasten',
@@ -63,6 +39,40 @@ EXECUTION_FUNCTION_LIST = {
 }
 
 # === Start the process ===
+def setup_logger(log_dir):
+    '''setup logger'''
+    if os.path.isdir(log_dir):
+        # Put a slash at the end
+        log_dir = os.path.join(log_dir, '')
+    else:
+        print('The specified root folder does not exist')
+        print('Abort the process')
+        print('You can see how to use it with the -h option')
+        sys.exit()
+    log_file_format = "%(asctime)s [%(levelname)s] %(message)s"
+    log_console_format = "[%(levelname)s] %(message)s"
+    # main logger
+    logger = logging.getLogger(__name__)
+    # console handler
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+    console_handler.setFormatter(Formatter(log_console_format))
+    # logger.addHandler(console_handler)
+    file_handler = RotatingFileHandler(
+        '{}normalization_zettel.log'.format(log_dir),
+        maxBytes = 1000000,
+        backupCount = 3
+    )
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(Formatter(log_file_format))
+
+    # common config
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        handlers=[console_handler, file_handler]
+    )
+    return logger
 
 def get_files(start_path, type):
     '''Retrieves a file of the specified path and type'''
@@ -456,6 +466,7 @@ def query_yes_no(question, default="yes"):
 # === Main process ===
 if __name__ == '__main__':
     '''This is the main process to implement the enabled features'''
+    logger = setup_logger(args.root)
     logger.info('=================================================')
     logger.info('Welcome to Note normalization for Zettelkasten!')
     logger.info('=================================================\n')
