@@ -110,7 +110,7 @@ def check_note_type(file_path, type):
 def check_and_create_yfm(files):
     '''If there is no YFM, create one.'''
     logger.info('====== Start Check YFM ======')
-    logger.info('the target is: ' + str(len(files)) + ' files\n')
+    logger.info('the target is: ' + str(len(files)) + ' files')
     update_yfm_files = [] # if note have YFM
     create_yfm_files = [] # if note doesn't have YFM
     # check and classify files by exists YFM
@@ -127,9 +127,9 @@ def check_and_create_yfm(files):
             else: 
                 create_yfm_files.append(file)
                 logger.debug("No YFM yet")
-        logger.info("check done! [" + str(i+1) + "/" + str(len(files)) + "]\n")
+        logger.info("check done! [" + str(i+1) + "/" + str(len(files)) + "]")
     logger.info('====== Start Update YFM ======')
-    logger.info('the target is: ' + str(len(update_yfm_files)) + ' files\n')
+    logger.info('the target is: ' + str(len(update_yfm_files)) + ' files')
     processing_file_cnt = 0 # Counting the number of files processed
     for j, update_yfm_file in enumerate(update_yfm_files):
         logger.debug("Updating YFM...")
@@ -194,10 +194,10 @@ def check_and_create_yfm(files):
                 processing_file_cnt += 1
             else:
                 logger.debug("There is no YFM to update")
-        logger.debug("processing done! [" + str(j+1) + "/" + str(len(update_yfm_files)) + "]\n")
-    logger.info(str(processing_file_cnt) + ' files have been updated!\n')
+        logger.debug("processing done! [" + str(j+1) + "/" + str(len(update_yfm_files)) + "]")
+    logger.info(str(processing_file_cnt) + ' files have been updated!')
     logger.info('====== Start Add New YFM ======')
-    logger.info('the target is: ' + str(len(create_yfm_files)) + ' files\n')
+    logger.info('the target is: ' + str(len(create_yfm_files)) + ' files')
     processing_file_cnt = 0 # Counting the number of files processed
     for i, create_yfm_file in enumerate(create_yfm_files):
         logger.debug("Creating YFM...")
@@ -228,8 +228,8 @@ def check_and_create_yfm(files):
             # writing header
             writing_lines_without_hashtags(create_yfm_file, lines)
             processing_file_cnt += 1 # Counting the number of files processed
-        logger.debug("processing done! [" + str(i+1) + "/" + str(len(create_yfm_files)) + "]\n")
-    logger.info(str(processing_file_cnt) + 'files have been updated!\n')
+        logger.debug("processing done! [" + str(i+1) + "/" + str(len(create_yfm_files)) + "]")
+    logger.info(str(processing_file_cnt) + 'files have been updated!')
 
 def get_file_name(file_path):
     '''Retrieves a file name from the specified path. The format of the return value is as below:
@@ -305,13 +305,13 @@ def writing_lines_without_hashtags(target, lines):
 def rename_notes_with_links(files):
     '''Rename the all file names to UID and update wikilinks to Markdownlinks'''
     logger.info('====== Start Rename Notes And Substitute Wikilinks ======')
-    logger.info('the target is: ' + str(len(files)) + ' files\n')
+    logger.info('the target is: ' + str(len(files)) + ' files')
     rename_file_cnt = 0 # Counting the number of files processed
     substitute_file_cnt = 0 # Number of files with links
     for i, file in enumerate(files): 
         logger.debug("target: " + file)
         if check_note_has_uid(file):
-            logger.debug("It seems that this file already has a UID\n")
+            logger.debug("It seems that this file already has a UID")
             continue
         else:
             new_file_path = get_new_filepath_with_uid(file)
@@ -332,19 +332,19 @@ def rename_notes_with_links(files):
             # Replace backlinks
             if substitute_wikilinks_to_markdown_links(file, new_file_path_result):
                 substitute_file_cnt += 1
-        logger.debug("processing done! [" + str(i+1) + "/" + str(len(files)) + "]\n")
-    logger.info(str(rename_file_cnt) + ' files have been renamed!\n')
-    logger.info(str(substitute_file_cnt) + 'linked files have been updated!\n')
+        logger.debug("processing done! [" + str(i+1) + "/" + str(len(files)) + "]")
+    logger.info(str(rename_file_cnt) + ' files have been renamed!')
+    logger.info(str(substitute_file_cnt) + 'linked files have been updated!')
 
 def rename_images_with_links(files):
     logger.info('====== Start Rename Images And Substitute Wikilinks ======')
-    logger.info('the target is: ' + str(len(files)) + ' files\n')
+    logger.info('the target is: ' + str(len(files)) + ' files')
     rename_file_cnt = 0 # Counting the number of files processed
     substitute_file_cnt = 0 # Number of files with links
     for i, file in enumerate(files): 
         logger.debug("target: " + file)
         if check_note_has_uid(file):
-            logger.debug("It seems that this file already has a UID\n")
+            logger.debug("It seems that this file already has a UID")
             continue
         else:
             # rename image
@@ -357,9 +357,9 @@ def rename_images_with_links(files):
             # Replace backlinks
             if substitute_wikilinks_to_markdown_links(file, new_file_path):
                 substitute_file_cnt += 1
-        logger.debug("processing done! [" + str(i+1) + "/" + str(len(files)) + "]\n")
+        logger.debug("processing done! [" + str(i+1) + "/" + str(len(files)) + "]")
     logger.info(str(rename_file_cnt) + ' files have been renamed!')
-    logger.info(str(substitute_file_cnt) + ' linked files have been updated!\n')
+    logger.info(str(substitute_file_cnt) + ' linked files have been updated!')
 
 def check_note_has_uid(file):
     file_title = get_file_name(file)[1]
@@ -461,7 +461,7 @@ def query_yes_no(question, default="yes"):
             return valid[choice]
         else:
             sys.stdout.write("Please respond with 'yes' or 'no' "
-                             "(or 'y' or 'n').\n")
+                             "(or 'y' or 'n').")
 
 # === Main process ===
 if __name__ == '__main__':
@@ -469,7 +469,7 @@ if __name__ == '__main__':
     logger = setup_logger(args.root)
     logger.info('=================================================')
     logger.info('Welcome to Note normalization for Zettelkasten!')
-    logger.info('=================================================\n')
+    logger.info('=================================================')
     # Argument Retrieval
     # Specify the Zettelkasten Root folder
     if os.path.isdir(args.root):
@@ -506,7 +506,7 @@ if __name__ == '__main__':
             logger.info('okay. Abort the process')
             sys.exit()
     # Confirm the function to be performed
-    logger.debug('Checking the process to be executed\n')
+    logger.debug('Checking the process to be executed')
     function_desc = {
         'function_create_yfm': '- Yaml FrontMatter formatting\t\t\t......\t',
         'function_rename_notes': '- Rename the note to UID and update the link\t.......\t',
@@ -535,5 +535,5 @@ if __name__ == '__main__':
         rename_images_with_links(get_files(TARGET_PATH, 'image'))
     # finish!
     logger.info('All processing is complete!')
-    logger.info('The execution log was saved to a log file. please see /path/to/your/zettelkasten_root_folder/normalization_zettel.log files.\n')
+    logger.info('The execution log was saved to a log file. please see /path/to/your/zettelkasten_root_folder/normalization_zettel.log files.')
     logger.info('Enjoy building your SECOND BRAIN!')
