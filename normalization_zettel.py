@@ -50,7 +50,7 @@ def setup_logger(log_dir):
         print('You can see how to use it with the -h option')
         sys.exit()
     log_file_format = "%(asctime)s [%(levelname)s] %(message)s"
-    log_console_format = "[%(levelname)s] %(message)s"
+    log_console_format = "%(message)s"
     # main logger
     logger = logging.getLogger(__name__)
     # console handler
@@ -186,6 +186,7 @@ def check_and_create_yfm(files):
             if str(check_YFM["update"]).isdecimal():
                 del lines[check_YFM["update"]]
                 lines.insert(check_YFM["update"], 'update: ' + format_date(get_modification_date(update_yfm_file)) + '\n')
+                update_flg = True
             # writing header
             writing_lines_without_hashtags(update_yfm_file, lines)
             # Count the number of files processed.
@@ -334,7 +335,7 @@ def rename_notes_with_links(files):
                 substitute_file_cnt += 1
         logger.debug("processing done! [" + str(i+1) + "/" + str(len(files)) + "]")
     logger.info(str(rename_file_cnt) + ' files have been renamed!')
-    logger.info(str(substitute_file_cnt) + 'linked files have been updated!')
+    logger.info(str(substitute_file_cnt) + ' linked files have been updated!')
 
 def rename_images_with_links(files):
     logger.info('====== Start Rename Images And Substitute Wikilinks ======')
@@ -536,4 +537,6 @@ if __name__ == '__main__':
     # finish!
     logger.info('All processing is complete!')
     logger.info('The execution log was saved to a log file. please see /path/to/your/zettelkasten_root_folder/normalization_zettel.log files.')
+    logger.info('=================================================')
     logger.info('Enjoy building your SECOND BRAIN!')
+    logger.info('=================================================')
