@@ -133,7 +133,7 @@ def check_and_create_yfm(files):
     processing_file_cnt = 0 # Counting the number of files processed
     for j, update_yfm_file in enumerate(update_yfm_files):
         logger.debug("Updating YFM...")
-        logger.debug("target: " + update_yfm_file)
+        logger.info("target: " + update_yfm_file)
         this_YFM = YFM
         check_YFM = {
             "title": False,
@@ -202,7 +202,7 @@ def check_and_create_yfm(files):
     processing_file_cnt = 0 # Counting the number of files processed
     for i, create_yfm_file in enumerate(create_yfm_files):
         logger.debug("Creating YFM...")
-        logger.debug("target: " + create_yfm_file)
+        logger.info("target: " + create_yfm_file)
         with open(create_yfm_file) as f:
             lines = f.readlines()
             tag_line = create_tag_line_from_lines(lines)
@@ -321,7 +321,7 @@ def rename_notes_with_links(files):
             logger.debug("rename: " + new_file_path)
             # rename and move ROOT PATH
             new_file_path_result = shutil.move(file, new_file_path)
-            logger.debug("rename done: " + new_file_path_result)
+            logger.info("rename done: " + new_file_path_result)
             rename_file_cnt += 1
             # add UID to top of YFM
             with open(new_file_path_result) as f:
@@ -354,7 +354,7 @@ def rename_images_with_links(files):
             logger.debug("uid: " + uid)
             os.rename(file, new_file_path)
             rename_file_cnt += 1
-            logger.debug("rename: " + new_file_path)
+            logger.info("rename done: " + new_file_path)
             # Replace backlinks
             if substitute_wikilinks_to_markdown_links(file, new_file_path):
                 substitute_file_cnt += 1
