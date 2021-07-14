@@ -25,7 +25,7 @@ YFM = {
     "title": "", # It will be replaced by the file name
     "aliases": "[]",
     "date": "", # Replaced by the file creation date
-    "update":"", # Replaced by the file modification date
+    "update": "", # Replaced by the file modification date
     "tags": "[]", # If you have a hashtag, it will be generated automatically
     "draft": "false" # The following note will be true for the folder specified as INBOX_DIR
 }
