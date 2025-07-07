@@ -16,7 +16,7 @@ args = parser.parse_args()
 
 # === Setting section ===
 INBOX_DIR = ['Inbox', 'Draft', 'Pending'] # The files in this folder will have the YFM draft key set to true
-EXCLUDE_DIR = set(['Backup', 'Template', 'tmp']) # Folders not to be processed (Hidden folders and files are not covered by default)
+EXCLUDE_DIR = set(['Backup', 'Template', 'tmp', 'node_modules']) # Folders not to be processed (Hidden folders and files are not covered by default)
 EXCLUDE_FILE = set(['tags']) # Files not to be processed (Hidden folders and files are not covered by default)
 NOTE_EXT = ['.md', '.txt'] # Note file extension
 IMG_EXT = ['.png', '.jpg', '.jpeg', '.svg', '.gif'] # image file extension
@@ -155,7 +155,7 @@ def check_and_create_yfm(files):
                     end_of_yfm = i
                     break
                 for key in check_YFM:
-                    if re.match("^" + key + ": ", line):
+                    if re.match("^" + key + ":", line):
                         check_YFM[key] = i
             update_flg = False # Check to see if it has been processed
             # Adding an item
