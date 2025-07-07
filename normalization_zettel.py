@@ -1,4 +1,4 @@
-import sys, shutil, os, datetime, re, platform,  unicodedata, argparse
+import sys, shutil, os, datetime, re, platform,  unicodedata, argparse, uuid
 import logging
 from logging import Formatter
 from logging.handlers import RotatingFileHandler
@@ -136,12 +136,12 @@ def check_and_create_yfm(files):
         logger.info("target: " + update_yfm_file)
         this_YFM = YFM
         check_YFM = {
-            "title": False,
-            "aliases": False,
-            "date": False,
-            "update": False,
-            "tags": False,
-            "draft": False
+            "title": -1,
+            "aliases": -1,
+            "date": -1,
+            "update": -1,
+            "tags": -1,
+            "draft": -1
         }
         with open(update_yfm_file) as f:
             lines = f.readlines()
@@ -160,7 +160,7 @@ def check_and_create_yfm(files):
             update_flg = False # Check to see if it has been processed
             # Adding an item
             for key in check_YFM:
-                if check_YFM[key] == False:
+                if check_YFM[key] == -1:
                     # Check as processed
                     if not update_flg:
                         update_flg = True
@@ -364,21 +364,21 @@ def rename_images_with_links(files):
 
 def check_note_has_uid(file):
     file_title = get_file_name(file)[1]
-    return re.match('^\d{14}$', file_title)
+    return re.match('^[a-f0-9]{32}$', file_title)
 
 def get_new_filepath_with_uid(file):
     '''get new filepath with uid'''
-    # UID is yyyymmddhhmmss from create date
-    uid = int(format_uid_from_date(get_creation_date(file)))
+    # UID is UUID v4 (32-digit hexadecimal without hyphens)
+    uid = uuid.uuid4().hex
     ext = get_file_name(file)[2]
     # Target path to check for duplicate UID
     if ext == '.md':
         path = ROOT_PATH
     else:
         path = os.path.dirname(file)
-    # Add 1 if the UID is duplicated
+    # Generate new UUID if duplicated (very unlikely but possible)
     while os.path.exists(build_filepath_by_uid(uid, path, ext)):
-        uid += 1
+        uid = uuid.uuid4().hex
     return build_filepath_by_uid(uid, path, ext)
 
 def build_filepath_by_uid(uid, path, ext='.md'):

@@ -22,7 +22,7 @@ Normalizing notes reduces dependence on tools and increases the flexibility and 
 
 - Automatically generate Yaml Front Matter from the note information and insert it into the header
 - Move hashtags to Yaml Front Matter
-- Rename the file to UID
+- Rename the file to UUID
 - Move the Markdown file to the Zettelkasten's root folder
 - Replace link (filename and folder)
 - Change Wikilinks to Markdown links (with Relative Paths and Extensions)
