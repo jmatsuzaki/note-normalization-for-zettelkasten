@@ -81,6 +81,7 @@ It is strongly recommended to back up Zettelkasten using a mechanism such as git
 
 - Windows and Linux support
 - Toml and json Front Matter support
+- Option to execute only certain functions
 
 ## Author ##
 
