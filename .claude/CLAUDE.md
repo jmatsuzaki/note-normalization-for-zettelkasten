@@ -113,9 +113,20 @@ done
 
 - Python 3.9.1 or above
 - Standard library only (no external dependencies)
-- Designed for macOS (Windows/Linux support in TODO)
+- Cross-platform support: Windows, macOS, and Linux
 
 ## Testing
 
-This tool requires manual testing on a copy of your Zettelkasten before running on production data. No automated test suite is provided.
+The tool includes a comprehensive test suite with automated tests covering:
+- Cross-platform compatibility (line endings, file operations)
+- Multiple front matter formats (YAML, TOML, JSON)
+- Unicode handling and file encoding
+- All core functionality modules
+
+Run tests with:
+```bash
+python tests/test_normalization_zettel.py
+```
+
+It's still recommended to test on a copy of your Zettelkasten before running on production data.
 

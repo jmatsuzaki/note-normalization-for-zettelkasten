@@ -56,6 +56,7 @@ The project follows the standard Python `src` layout:
 ## Requirements
 
 - Python 3.9.1 or above
+- **Cross-platform support**: Windows, macOS, and Linux
 
 ## Installation
 
@@ -203,6 +204,15 @@ draft = false
 }
 ```
 
+### Cross-Platform Compatibility
+
+The tool handles cross-platform compatibility automatically:
+
+- **Line Endings**: Automatically normalizes different line ending styles (CRLF, LF, CR)
+- **Path Separators**: Uses appropriate path separators for each platform
+- **Character Encoding**: Supports UTF-8 encoding with fallback handling
+- **File Operations**: Cross-platform file reading and writing with proper encoding
+
 ## Development
 
 ### Running Tests
@@ -223,8 +233,8 @@ This installs development dependencies including pytest, black, flake8, and mypy
 
 ## Future works (TODO)
 
-- Windows and Linux support
 - Option to execute only certain functions
+- Performance optimizations for large repositories
 
 ## Author
 

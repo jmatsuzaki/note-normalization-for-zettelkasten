@@ -6,7 +6,7 @@ Supports YAML, TOML, and JSON formats.
 import re
 import logging
 from .config import YFM, INBOX_DIR, FRONT_MATTER_FORMAT
-from .utils import get_file_name, get_dir_name, format_date, get_creation_date, get_modification_date
+from .utils import get_file_name, get_dir_name, format_date, get_creation_date, get_modification_date, read_file_cross_platform, write_file_cross_platform
 from .frontmatter_parser import FrontMatterParser, get_frontmatter_delimiters
 
 # Get logger
@@ -33,25 +33,21 @@ def writing_lines_without_hashtags(target, lines):
     if isinstance(lines, str):
         lines = lines.split('\n')
     
-    with open(target, mode="w", encoding='utf-8') as wf:
-        logger.debug("writing file...")
-        for i, line in enumerate(lines):
-            # Add newline if missing (except for last line)
-            if not line.endswith('\n') and i < len(lines) - 1:
-                line += '\n'
-            # Delete the hashtag line
-            if not re.match("^\#[^\#|^\s].+", line):
-                wf.write(line)
+    logger.debug("writing file...")
+    content_lines = []
+    for line in lines:
+        # Delete the hashtag line
+        if not re.match("^\#[^\#|^\s].+", line):
+            content_lines.append(line)
     
-    # Clean up trailing newlines
-    with open(target, 'r', encoding='utf-8') as f:
-        content = f.read()
+    # Join lines and ensure proper line endings
+    content = '\n'.join(content_lines)
     
     # Remove excessive trailing newlines but keep at least one
     content = content.rstrip('\n') + '\n'
     
-    with open(target, mode="w", encoding='utf-8') as wf:
-        wf.write(content)
+    # Use cross-platform write function
+    write_file_cross_platform(target, content)
     logger.debug("done!")
 
 
@@ -80,8 +76,8 @@ def check_and_create_yfm(files, format_type=None):
         logger.debug("target: " + file)
         
         try:
-            with open(file, 'r', encoding='utf-8') as f:
-                content = f.read()
+            # Use cross-platform file reading
+            content = read_file_cross_platform(file)
                 
             # Detect front matter format
             detected_format = parser.detect_format(content)
@@ -116,8 +112,8 @@ def _update_existing_yfm(update_yfm_files, parser):
         logger.info("target: " + update_yfm_file)
         
         try:
-            with open(update_yfm_file, 'r', encoding='utf-8') as f:
-                content = f.read()
+            # Use cross-platform file reading
+            content = read_file_cross_platform(update_yfm_file)
             
             # Parse existing front matter
             metadata, body_content = parser.parse_frontmatter(content)
@@ -187,8 +183,8 @@ def _create_new_yfm(create_yfm_files, parser):
         logger.info("target: " + create_yfm_file)
         
         try:
-            with open(create_yfm_file, 'r', encoding='utf-8') as f:
-                content = f.read()
+            # Use cross-platform file reading
+            content = read_file_cross_platform(create_yfm_file)
             
             lines = content.split('\n')
             tag_line = create_tag_line_from_lines(lines)

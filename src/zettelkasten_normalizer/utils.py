@@ -15,8 +15,8 @@ from logging.handlers import RotatingFileHandler
 def setup_logger(log_dir):
     """setup logger"""
     if os.path.isdir(log_dir):
-        # Put a slash at the end
-        log_dir = os.path.join(log_dir, "")
+        # Normalize path for cross-platform compatibility
+        log_dir = normalize_path(log_dir)
     else:
         print("The specified root folder does not exist")
         print("Abort the process")
@@ -31,8 +31,11 @@ def setup_logger(log_dir):
     console_handler.setLevel(logging.INFO)
     console_handler.setFormatter(Formatter(log_console_format))
     # logger.addHandler(console_handler)
+    
+    # Create log file path with proper separator
+    log_file_path = os.path.join(log_dir, "normalization_zettel.log")
     file_handler = RotatingFileHandler(
-        "{}normalization_zettel.log".format(log_dir), maxBytes=1000000, backupCount=3
+        log_file_path, maxBytes=1000000, backupCount=3
     )
     file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(Formatter(log_file_format))
@@ -117,3 +120,46 @@ def query_yes_no(question, default="yes"):
             return valid[choice]
         else:
             sys.stdout.write("Please respond with 'yes' or 'no' (or 'y' or 'n').")
+
+
+def normalize_line_endings(content):
+    """Normalize line endings to Unix style (LF) regardless of platform"""
+    # Replace Windows CRLF and old Mac CR with Unix LF
+    content = content.replace('\r\n', '\n')  # Windows CRLF -> LF
+    content = content.replace('\r', '\n')    # Old Mac CR -> LF
+    return content
+
+
+def read_file_cross_platform(file_path, encoding='utf-8'):
+    """Read file with cross-platform line ending normalization"""
+    try:
+        with open(file_path, 'r', encoding=encoding, newline='') as f:
+            content = f.read()
+        # Normalize line endings
+        return normalize_line_endings(content)
+    except UnicodeDecodeError:
+        # Fallback to different encoding if UTF-8 fails
+        with open(file_path, 'r', encoding='latin-1', newline='') as f:
+            content = f.read()
+        return normalize_line_endings(content)
+
+
+def write_file_cross_platform(file_path, content, encoding='utf-8'):
+    """Write file with cross-platform line ending handling"""
+    # Ensure content uses Unix line endings
+    content = normalize_line_endings(content)
+    
+    # On Windows, let Python handle the conversion to CRLF automatically
+    # On Unix systems, keep LF as is
+    with open(file_path, 'w', encoding=encoding, newline='\n') as f:
+        f.write(content)
+
+
+def get_platform_path_separator():
+    """Get the correct path separator for the current platform"""
+    return os.sep
+
+
+def normalize_path(path):
+    """Normalize path separators for the current platform"""
+    return os.path.normpath(path)

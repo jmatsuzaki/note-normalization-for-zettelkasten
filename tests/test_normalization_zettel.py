@@ -686,6 +686,117 @@ class TestFrontMatterIntegration(unittest.TestCase):
                 delattr(yfm_processor, 'logger')
 
 
+class TestCrossPlatformSupport(unittest.TestCase):
+    """クロスプラットフォーム対応のテスト"""
+
+    def setUp(self):
+        """テスト用の一時ディレクトリを作成"""
+        self.test_dir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.test_dir)
+
+    def test_normalize_line_endings(self):
+        """改行コード正規化のテスト"""
+        # Windows CRLF
+        windows_content = "line1\r\nline2\r\nline3\r\n"
+        normalized = utils.normalize_line_endings(windows_content)
+        self.assertEqual(normalized, "line1\nline2\nline3\n")
+        
+        # Old Mac CR
+        mac_content = "line1\rline2\rline3\r"
+        normalized = utils.normalize_line_endings(mac_content)
+        self.assertEqual(normalized, "line1\nline2\nline3\n")
+        
+        # Unix LF (should remain unchanged)
+        unix_content = "line1\nline2\nline3\n"
+        normalized = utils.normalize_line_endings(unix_content)
+        self.assertEqual(normalized, "line1\nline2\nline3\n")
+        
+        # Mixed line endings
+        mixed_content = "line1\r\nline2\nline3\r"
+        normalized = utils.normalize_line_endings(mixed_content)
+        self.assertEqual(normalized, "line1\nline2\nline3\n")
+
+    def test_cross_platform_file_operations(self):
+        """クロスプラットフォームファイル操作のテスト"""
+        test_file = os.path.join(self.test_dir, "test.md")
+        
+        # Windows style content with CRLF
+        original_content = "# Test\r\n\r\nThis is a test with CRLF line endings.\r\n"
+        
+        # Write and read back
+        utils.write_file_cross_platform(test_file, original_content)
+        read_content = utils.read_file_cross_platform(test_file)
+        
+        # Content should be normalized to LF
+        expected_content = "# Test\n\nThis is a test with CRLF line endings.\n"
+        self.assertEqual(read_content, expected_content)
+
+    def test_path_normalization(self):
+        """パス正規化のテスト"""
+        # Test various path separators
+        if os.name == 'nt':  # Windows
+            # Forward slashes should be converted to backslashes on Windows
+            path = "path/to/file.md"
+            normalized = utils.normalize_path(path)
+            self.assertEqual(normalized, "path\\to\\file.md")
+        else:  # Unix-like systems
+            # Backslashes should be preserved but path should be normalized
+            path = "path/to/../to/file.md"
+            normalized = utils.normalize_path(path)
+            self.assertEqual(normalized, "path/to/file.md")
+        
+        # Test with double separators
+        path_with_double = "path//to//file.md"
+        normalized = utils.normalize_path(path_with_double)
+        expected_sep = utils.get_platform_path_separator()
+        expected = f"path{expected_sep}to{expected_sep}file.md"
+        self.assertEqual(normalized, expected)
+
+    def test_frontmatter_with_different_line_endings(self):
+        """異なる改行コードでのフロントマター処理テスト"""
+        test_file = os.path.join(self.test_dir, "test.md")
+        
+        # Create content with Windows line endings
+        content_crlf = "# Test Note\r\n\r\nThis is a test note with #tag1.\r\n"
+        
+        # Write file with Windows line endings
+        with open(test_file, 'w', newline='\r\n') as f:
+            f.write(content_crlf)
+        
+        # loggerをモック
+        mock_logger = MagicMock()
+        yfm_processor.logger = mock_logger
+        
+        try:
+            # フロントマター作成を実行
+            yfm_processor.check_and_create_yfm([test_file], "yaml")
+            
+            # ファイルを読み込んで確認
+            result_content = utils.read_file_cross_platform(test_file)
+            
+            # YAMLフロントマターが追加されていることを確認
+            self.assertTrue(result_content.startswith("---\n"))
+            self.assertIn("title: test", result_content)
+            self.assertIn("tag1", result_content)
+            
+        finally:
+            if hasattr(yfm_processor, 'logger'):
+                delattr(yfm_processor, 'logger')
+
+    def test_unicode_file_handling(self):
+        """Unicode文字を含むファイルの処理テスト"""
+        test_file = os.path.join(self.test_dir, "日本語ファイル.md")
+        
+        # Unicode content with Japanese characters
+        unicode_content = "# テストノート\n\n日本語のコンテンツです。\n"
+        
+        # Write and read back
+        utils.write_file_cross_platform(test_file, unicode_content)
+        read_content = utils.read_file_cross_platform(test_file)
+        
+        self.assertEqual(read_content, unicode_content)
+
+
 if __name__ == '__main__':
     # テストの実行
     unittest.main(verbosity=2)

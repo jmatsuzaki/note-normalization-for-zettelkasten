@@ -6,7 +6,7 @@ import re
 import os
 import shutil
 import logging
-from .utils import get_file_name
+from .utils import get_file_name, read_file_cross_platform, write_file_cross_platform
 from .file_operations import get_files, check_note_has_uid, get_new_filepath_with_uid
 
 # Get logger
@@ -28,9 +28,12 @@ def substitute_wikilinks_to_markdown_links(old_file_path, new_file_path, root_pa
     
     for update_link_file in update_link_files:
         substitute_flg = False  # For counting the number of replaced files
-        with open(update_link_file, mode="r") as f:
-            lines = f.readlines()
-            for i, line in enumerate(lines):
+        
+        # Use cross-platform file reading
+        content = read_file_cross_platform(update_link_file)
+        lines = content.split('\n')
+        
+        for i, line in enumerate(lines):
                 # Replace the target Wikilinks if any
                 match = re.search(
                     "\[\[("
@@ -76,11 +79,12 @@ def substitute_wikilinks_to_markdown_links(old_file_path, new_file_path, root_pa
                     substitute_line_cnt += 1
                     lines[i] = line.replace(match.group(1), new_file_link)
                     logger.debug(lines[i])
-            
-            with open(update_link_file, mode="w") as wf:
-                wf.writelines(lines)
-            if substitute_flg:
-                substitute_file_cnt += 1
+        
+        # Write back the modified content using cross-platform function
+        if substitute_flg:
+            modified_content = '\n'.join(lines)
+            write_file_cross_platform(update_link_file, modified_content)
+            substitute_file_cnt += 1
     
     logger.debug(str(substitute_line_cnt) + " lines replaced!")
     logger.debug(
@@ -113,13 +117,13 @@ def rename_notes_with_links(files, root_path):
             new_file_path_result = shutil.move(file, new_file_path)
             logger.info("rename done: " + new_file_path_result)
             rename_file_cnt += 1
-            # add UID to top of YFM
-            with open(new_file_path_result) as f:
-                logger.debug("Insert UID into Yaml FrontMatter")
-                lines = f.readlines()
-                lines.insert(1, "uid: " + uid + "\n")
-                with open(new_file_path_result, mode="w") as wf:
-                    wf.writelines(lines)
+            # add UID to top of front matter
+            logger.debug("Insert UID into Front Matter")
+            content = read_file_cross_platform(new_file_path_result)
+            lines = content.split('\n')
+            lines.insert(1, "uid: " + uid)
+            modified_content = '\n'.join(lines)
+            write_file_cross_platform(new_file_path_result, modified_content)
             # Replace backlinks
             if substitute_wikilinks_to_markdown_links(file, new_file_path_result, root_path):
                 substitute_file_cnt += 1
