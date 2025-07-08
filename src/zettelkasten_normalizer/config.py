@@ -34,6 +34,9 @@ YFM = {
     "draft": "false",  # The following note will be true for the folder specified as INBOX_DIR
 }
 
+# Front matter format settings
+FRONT_MATTER_FORMAT = "yaml"  # Supported formats: "yaml", "toml", "json"
+
 # Function execution settings
 EXECUTION_FUNCTION_LIST = {
     "function_create_yfm": True,  # If there is no Yaml FrontMatter at the beginning of the note, it will be generated

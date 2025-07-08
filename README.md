@@ -22,8 +22,9 @@ Normalizing notes reduces dependence on tools and increases the flexibility and 
 
 ## Features ##
 
-- Automatically generate Yaml Front Matter from the note information and insert it into the header
-- Move hashtags to Yaml Front Matter
+- Automatically generate Front Matter from the note information and insert it into the header
+- Support for multiple front matter formats: **YAML**, **TOML**, and **JSON**
+- Move hashtags to Front Matter
 - Rename the file to UUID
 - Move the Markdown file to the Zettelkasten's root folder
 - Replace link (filename and folder)
@@ -42,7 +43,8 @@ The project follows the standard Python `src` layout:
 │       ├── config.py                 # Configuration settings
 │       ├── utils.py                  # Utility functions
 │       ├── file_operations.py        # File discovery and validation
-│       ├── yfm_processor.py          # YAML Front Matter processing
+│       ├── frontmatter_parser.py     # Front matter parsing (YAML/TOML/JSON)
+│       ├── yfm_processor.py          # Front Matter processing
 │       ├── link_processor.py         # Link substitution and file renaming
 │       └── normalization_zettel.py   # Main entry point
 ├── tests/
@@ -103,12 +105,19 @@ python run_normalization.py /path/to/your/zettelkasten_root_folder
   - `-h, --help`: Show help message and exit
   - `-t TARGET, --target TARGET`: Normalization target folder or file
   - `-y, --yes`: Automatically answer yes to all questions
+  - `-f FORMAT, --format FORMAT`: Front matter format (yaml, toml, json). Default: yaml
 
 ### Examples
 
 ```bash
-# Process entire Zettelkasten
+# Process entire Zettelkasten (default YAML format)
 python run_normalization.py ~/Documents/MyZettelkasten
+
+# Process with TOML front matter
+python run_normalization.py ~/Documents/MyZettelkasten -f toml
+
+# Process with JSON front matter
+python run_normalization.py ~/Documents/MyZettelkasten -f json
 
 # Process specific file
 python run_normalization.py ~/Documents/MyZettelkasten -t ~/Documents/MyZettelkasten/new-note.md
@@ -152,11 +161,43 @@ This program is mainly designed to fix my Zettelkasten, so if you use it, please
 
 You can modify the behavior by editing `src/zettelkasten_normalizer/config.py`:
 
-- `INBOX_DIR`: Folders where files get `draft: true` in YAML front matter
+- `FRONT_MATTER_FORMAT`: Default front matter format ("yaml", "toml", "json")
+- `INBOX_DIR`: Folders where files get `draft: true` in front matter
 - `EXCLUDE_DIR`: Folders to skip during processing
 - `EXCLUDE_FILE`: Files to skip during processing
 - `NOTE_EXT`: Supported note file extensions
 - `IMG_EXT`: Supported image extensions
+
+### Front Matter Formats
+
+The tool supports three front matter formats:
+
+**YAML (default)**
+```yaml
+---
+title: Note Title
+tags: [tag1, tag2]
+draft: false
+---
+```
+
+**TOML**
+```toml
++++
+title = "Note Title"
+tags = ["tag1", "tag2"]
+draft = false
++++
+```
+
+**JSON**
+```json
+{
+  "title": "Note Title",
+  "tags": ["tag1", "tag2"],
+  "draft": false
+}
+```
 
 ## Development ##
 
@@ -179,8 +220,8 @@ This installs development dependencies including pytest, black, flake8, and mypy
 ## Future works (TODO) ##
 
 - Windows and Linux support
-- Toml and json Front Matter support
 - Option to execute only certain functions
+- TOML parsing optimization for older Python versions
 
 ## Author ##
 

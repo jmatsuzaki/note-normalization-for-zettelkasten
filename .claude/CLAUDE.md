@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-This is a modular Python tool for normalizing Markdown notes for Zettelkasten systems. The tool processes notes to add YAML front matter, rename files with UIDs, and convert WikiLinks to Markdown links.
+This is a modular Python tool for normalizing Markdown notes for Zettelkasten systems. The tool processes notes to add front matter (YAML, TOML, or JSON), rename files with UIDs, and convert WikiLinks to Markdown links.
 
 ### Project Structure
 
@@ -20,7 +20,8 @@ The codebase follows the standard Python `src` layout:
 │       ├── config.py                 # Configuration settings
 │       ├── utils.py                  # Utility functions
 │       ├── file_operations.py        # File discovery and validation
-│       ├── yfm_processor.py          # YAML Front Matter processing
+│       ├── frontmatter_parser.py     # Front matter parsing (YAML/TOML/JSON)
+│       ├── yfm_processor.py          # Front Matter processing
 │       ├── link_processor.py         # Link substitution and file renaming
 │       └── normalization_zettel.py   # Main entry point
 ├── tests/
@@ -43,11 +44,17 @@ python run_normalization.py /path/to/your/zettelkasten_root_folder
 # Target specific folder/file
 python run_normalization.py /path/to/root -t /path/to/target
 
+# Use TOML front matter
+python run_normalization.py /path/to/root -f toml
+
+# Use JSON front matter
+python run_normalization.py /path/to/root -f json
+
 # Auto-answer yes to all prompts
 python run_normalization.py /path/to/root -y
 
 # Combine options
-python run_normalization.py /path/to/root -t /path/to/target -y
+python run_normalization.py /path/to/root -t /path/to/target -f toml -y
 ```
 
 ### Git Hook Integration

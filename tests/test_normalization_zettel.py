@@ -11,7 +11,7 @@ from io import StringIO
 # Import the modules to test
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-from zettelkasten_normalizer import utils, file_operations, yfm_processor, link_processor, config
+from zettelkasten_normalizer import utils, file_operations, yfm_processor, link_processor, config, frontmatter_parser
 
 
 class TestUtilityFunctions(unittest.TestCase):
@@ -454,6 +454,236 @@ class TestArgumentParsing(unittest.TestCase):
             
         finally:
             sys.argv = original_argv
+
+
+class TestFrontMatterParser(unittest.TestCase):
+    """フロントマターパーサーのテスト"""
+
+    def test_yaml_parser(self):
+        """YAMLパーサーのテスト"""
+        parser = frontmatter_parser.FrontMatterParser("yaml")
+        
+        # YAML形式のコンテンツ
+        content = """---
+title: Test Note
+tags: [test, example]
+draft: false
+---
+
+# Test Content
+
+This is a test note."""
+        
+        metadata, body = parser.parse_frontmatter(content)
+        
+        self.assertIsNotNone(metadata)
+        self.assertEqual(metadata["title"], "Test Note")
+        self.assertEqual(metadata["tags"], "[test, example]")
+        self.assertEqual(metadata["draft"], "false")
+        self.assertIn("# Test Content", body)
+
+    def test_toml_parser(self):
+        """TOMLパーサーのテスト（利用可能な場合）"""
+        try:
+            parser = frontmatter_parser.FrontMatterParser("toml")
+        except ImportError:
+            self.skipTest("TOML parser not available")
+        
+        # TOML形式のコンテンツ
+        content = """+++
+title = "Test Note"
+tags = ["test", "example"]
+draft = false
++++
+
+# Test Content
+
+This is a test note."""
+        
+        metadata, body = parser.parse_frontmatter(content)
+        
+        self.assertIsNotNone(metadata)
+        self.assertEqual(metadata["title"], "Test Note")
+        self.assertEqual(metadata["tags"], ["test", "example"])
+        self.assertEqual(metadata["draft"], False)
+        self.assertIn("# Test Content", body)
+
+    def test_json_parser(self):
+        """JSONパーサーのテスト"""
+        parser = frontmatter_parser.FrontMatterParser("json")
+        
+        # JSON形式のコンテンツ
+        content = """{
+  "title": "Test Note",
+  "tags": ["test", "example"],
+  "draft": false
+}
+
+# Test Content
+
+This is a test note."""
+        
+        metadata, body = parser.parse_frontmatter(content)
+        
+        self.assertIsNotNone(metadata)
+        self.assertEqual(metadata["title"], "Test Note")
+        self.assertEqual(metadata["tags"], ["test", "example"])
+        self.assertEqual(metadata["draft"], False)
+        self.assertIn("# Test Content", body)
+
+    def test_format_detection(self):
+        """フォーマット検出のテスト"""
+        parser = frontmatter_parser.FrontMatterParser("yaml")
+        
+        # YAML
+        yaml_content = "---\ntitle: test\n---\ncontent"
+        self.assertEqual(parser.detect_format(yaml_content), "yaml")
+        
+        # TOML
+        toml_content = "+++\ntitle = \"test\"\n+++\ncontent"
+        self.assertEqual(parser.detect_format(toml_content), "toml")
+        
+        # JSON
+        json_content = '{\n  "title": "test"\n}\ncontent'
+        self.assertEqual(parser.detect_format(json_content), "json")
+        
+        # No front matter
+        plain_content = "# Title\nRegular content"
+        self.assertIsNone(parser.detect_format(plain_content))
+
+    def test_yaml_serialization(self):
+        """YAMLシリアライゼーションのテスト"""
+        parser = frontmatter_parser.FrontMatterParser("yaml")
+        
+        metadata = {
+            "title": "Test Note",
+            "tags": "[test, example]",
+            "draft": "false"
+        }
+        content = "# Test Content\n\nThis is a test note."
+        
+        result = parser.serialize_frontmatter(metadata, content)
+        
+        self.assertIn("---", result)
+        self.assertIn("title: Test Note", result)
+        self.assertIn("tags: [test, example]", result)
+        self.assertIn("draft: false", result)
+        self.assertIn("# Test Content", result)
+
+    def test_toml_serialization(self):
+        """TOMLシリアライゼーションのテスト（利用可能な場合）"""
+        try:
+            parser = frontmatter_parser.FrontMatterParser("toml")
+        except ImportError:
+            self.skipTest("TOML parser not available")
+        
+        metadata = {
+            "title": "Test Note",
+            "tags": "[test, example]",
+            "draft": "false"
+        }
+        content = "# Test Content\n\nThis is a test note."
+        
+        result = parser.serialize_frontmatter(metadata, content)
+        
+        self.assertIn("+++", result)
+        self.assertIn('title = "Test Note"', result)
+        self.assertIn('tags = [test, example]', result)
+        self.assertIn('draft = false', result)
+        self.assertIn("# Test Content", result)
+
+    def test_json_serialization(self):
+        """JSONシリアライゼーションのテスト"""
+        parser = frontmatter_parser.FrontMatterParser("json")
+        
+        metadata = {
+            "title": "Test Note",
+            "tags": "[\"test\", \"example\"]",
+            "draft": "false"
+        }
+        content = "# Test Content\n\nThis is a test note."
+        
+        result = parser.serialize_frontmatter(metadata, content)
+        
+        self.assertIn('"title": "Test Note"', result)
+        # JSONの配列は複数行で表示される可能性があるため、柔軟にチェック
+        self.assertIn('"tags":', result)
+        self.assertIn('"test"', result)
+        self.assertIn('"example"', result)
+        self.assertIn('"draft": false', result)
+        self.assertIn("# Test Content", result)
+
+
+class TestFrontMatterIntegration(unittest.TestCase):
+    """フロントマター統合テスト"""
+
+    def setUp(self):
+        """テスト用の一時ディレクトリを作成"""
+        self.test_dir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.test_dir)
+
+    def test_toml_frontmatter_creation(self):
+        """TOMLフロントマター作成のテスト（利用可能な場合）"""
+        try:
+            frontmatter_parser.FrontMatterParser("toml")
+        except ImportError:
+            self.skipTest("TOML parser not available")
+        
+        # TOMLフロントマターなしのファイルを作成
+        test_file = os.path.join(self.test_dir, "test.md")
+        with open(test_file, 'w') as f:
+            f.write("# Test Note\n\nThis is a test note with #tag1.")
+        
+        # loggerをモック
+        mock_logger = MagicMock()
+        yfm_processor.logger = mock_logger
+        
+        try:
+            # TOMLフロントマターでフロントマター作成を実行
+            yfm_processor.check_and_create_yfm([test_file], "toml")
+            
+            # ファイルを読み込んで確認
+            with open(test_file, 'r') as f:
+                content = f.read()
+            
+            # TOMLフロントマターが追加されていることを確認
+            self.assertTrue(content.startswith("+++\n"))
+            self.assertIn('title = "test"', content)
+            self.assertIn('aliases = []', content)
+            self.assertIn('draft = false', content)
+            
+        finally:
+            if hasattr(yfm_processor, 'logger'):
+                delattr(yfm_processor, 'logger')
+
+    def test_json_frontmatter_creation(self):
+        """JSONフロントマター作成のテスト"""
+        # JSONフロントマターなしのファイルを作成
+        test_file = os.path.join(self.test_dir, "test.md")
+        with open(test_file, 'w') as f:
+            f.write("# Test Note\n\nThis is a test note with #tag1.")
+        
+        # loggerをモック
+        mock_logger = MagicMock()
+        yfm_processor.logger = mock_logger
+        
+        try:
+            # JSONフロントマターでフロントマター作成を実行
+            yfm_processor.check_and_create_yfm([test_file], "json")
+            
+            # ファイルを読み込んで確認
+            with open(test_file, 'r') as f:
+                content = f.read()
+            
+            # JSONフロントマターが追加されていることを確認
+            self.assertTrue(content.startswith("{\n"))
+            self.assertIn('"title": "test"', content)
+            self.assertIn('"aliases": []', content)
+            self.assertIn('"draft": false', content)
+            
+        finally:
+            if hasattr(yfm_processor, 'logger'):
+                delattr(yfm_processor, 'logger')
 
 
 if __name__ == '__main__':

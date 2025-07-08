@@ -27,13 +27,17 @@ def parse_arguments():
     """Parse command line arguments"""
     parser = argparse.ArgumentParser(
         description="This program will normalize Markdown notes for Zettelkasten",
-        epilog="This program will add Yaml Front Matter, add UIDs and rename files, replace Wikilink with Markdown link, etc.\nFurther details can be found in the repository. See below:\n\nhttps://github.com/jmatsuzaki/note-normalization-for-zettelkasten",
+        epilog="This program will add Front Matter, add UIDs and rename files, replace Wikilink with Markdown link, etc.\nFurther details can be found in the repository. See below:\n\nhttps://github.com/jmatsuzaki/note-normalization-for-zettelkasten",
         formatter_class=argparse.RawTextHelpFormatter,
     )
     parser.add_argument("root", help="Zettelkasten's root folder")
     parser.add_argument("-t", "--target", help="normalization target folder or file")
     parser.add_argument(
         "-y", "--yes", action="store_true", help="automatically answer yes to all questions"
+    )
+    parser.add_argument(
+        "-f", "--format", choices=["yaml", "toml", "json"], default="yaml",
+        help="Front matter format (default: yaml)"
     )
     return parser.parse_args()
 
@@ -77,10 +81,10 @@ def confirm_execution(args, logger):
     return True
 
 
-def show_function_status(logger):
+def show_function_status(logger, format_type="yaml"):
     """Show which functions are enabled"""
     function_desc = {
-        "function_create_yfm": "- Yaml FrontMatter formatting\t\t\t......\t",
+        "function_create_yfm": f"- {format_type.upper()} FrontMatter formatting\t\t\t......\t",
         "function_rename_notes": "- Rename the note to UID and update the link\t.......\t",
         "function_rename_images": "- Rename the image to UID and update the link\t.......\t",
     }
@@ -105,11 +109,11 @@ def confirm_functions(args, logger):
     return True
 
 
-def execute_normalization(target_path, root_path, logger):
+def execute_normalization(target_path, root_path, logger, format_type="yaml"):
     """Execute the normalization process"""
-    # Execute YAML Front Matter processing
+    # Execute Front Matter processing
     if EXECUTION_FUNCTION_LIST["function_create_yfm"]:
-        check_and_create_yfm(get_files(target_path, "note"))
+        check_and_create_yfm(get_files(target_path, "note"), format_type)
     
     # Execute note renaming
     if EXECUTION_FUNCTION_LIST["function_rename_notes"]:
@@ -149,14 +153,14 @@ def main():
     
     # Show function status
     logger.debug("Checking the process to be executed")
-    show_function_status(logger)
+    show_function_status(logger, args.format)
     
     # Confirm functions
     if not confirm_functions(args, logger):
         sys.exit(0)
     
     # Execute normalization
-    execute_normalization(target_path, root_path, logger)
+    execute_normalization(target_path, root_path, logger, args.format)
     
     # Completion message
     logger.info("All processing is complete!")
