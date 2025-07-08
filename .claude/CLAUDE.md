@@ -6,27 +6,48 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-This is a Python tool for normalizing Markdown notes for Zettelkasten systems. The tool processes notes to add YAML front matter, rename files with UIDs, and convert WikiLinks to Markdown links.
+This is a modular Python tool for normalizing Markdown notes for Zettelkasten systems. The tool processes notes to add YAML front matter, rename files with UIDs, and convert WikiLinks to Markdown links.
+
+### Project Structure
+
+The codebase follows the standard Python `src` layout:
+
+```
+.
+├── src/
+│   └── zettelkasten_normalizer/
+│       ├── __init__.py
+│       ├── config.py                 # Configuration settings
+│       ├── utils.py                  # Utility functions
+│       ├── file_operations.py        # File discovery and validation
+│       ├── yfm_processor.py          # YAML Front Matter processing
+│       ├── link_processor.py         # Link substitution and file renaming
+│       └── normalization_zettel.py   # Main entry point
+├── tests/
+│   └── test_normalization_zettel.py  # Comprehensive test suite
+├── run_normalization.py              # Command line entry point
+└── setup.py                          # Package configuration
+```
 
 ## Running the Tool
 
 ### Basic Usage
 
 ```bash
-python normalization_zettel.py /path/to/your/zettelkasten_root_folder
+python run_normalization.py /path/to/your/zettelkasten_root_folder
 ```
 
 ### With Options
 
 ```bash
 # Target specific folder/file
-python normalization_zettel.py /path/to/root -t /path/to/target
+python run_normalization.py /path/to/root -t /path/to/target
 
 # Auto-answer yes to all prompts
-python normalization_zettel.py /path/to/root -y
+python run_normalization.py /path/to/root -y
 
 # Combine options
-python normalization_zettel.py /path/to/root -t /path/to/target -y
+python run_normalization.py /path/to/root -t /path/to/target -y
 ```
 
 ### Git Hook Integration
@@ -36,7 +57,7 @@ For automated processing of changed files:
 ```bash
 # In .git/hooks/pre-commit
 git diff --cached --name-status | grep -e "^M" -e "^A" | while read a b; do
-  python /path/to/normalization_zettel.py /path/to/zettelkasten_root -t "$b" -y
+  python /path/to/run_normalization.py /path/to/zettelkasten_root -t "$b" -y
   git add "$b"
 done
 ```

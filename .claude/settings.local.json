@@ -4,7 +4,12 @@
       "Bash(mkdir:*)",
       "Bash(mv:*)",
       "Bash(python -m pytest test_normalization_zettel.py -v)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(rm:*)",
+      "Bash(find:*)",
+      "Bash(tree:*)"
     ],
     "deny": []
   }
