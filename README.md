@@ -1,4 +1,4 @@
-# Note normalization for Zettelkasten #
+# Note normalization for Zettelkasten
 
 Note normalization for Zettelkasten. Add Yaml Front Matter, add UIDs and rename files, replace Wikilink with Markdown link, etc.
 
@@ -16,11 +16,11 @@ Normalizing notes reduces dependence on tools and increases the flexibility and 
 10. [Author](#author)
 11. [Preview images](#preview-images)
 
-## Screenshots ##
+## Screenshots
 
 ![Screenshots](img/readme_screenshots.png)
 
-## Features ##
+## Features
 
 - Automatically generate Front Matter from the note information and insert it into the header
 - Support for multiple front matter formats: **YAML**, **TOML**, and **JSON**
@@ -31,7 +31,7 @@ Normalizing notes reduces dependence on tools and increases the flexibility and 
 - Change Wikilinks to Markdown links (with Relative Paths and Extensions)
 - Support for Markdown files and images
 
-## Project Structure ##
+## Project Structure
 
 The project follows the standard Python `src` layout:
 
@@ -53,11 +53,11 @@ The project follows the standard Python `src` layout:
 └── setup.py                          # Package configuration
 ```
 
-## Requirements ##
+## Requirements
 
 - Python 3.9.1 or above
 
-## Installation ##
+## Installation
 
 Download or clone this repository.
 
@@ -88,7 +88,7 @@ After installation, you can use:
 zettelkasten-normalizer /path/to/your/zettelkasten_root_folder
 ```
 
-## Usage ##
+## Usage
 
 ### Basic Usage
 
@@ -99,6 +99,7 @@ python run_normalization.py /path/to/your/zettelkasten_root_folder
 ### Command Line Options
 
 - **Positional arguments:**
+
   - `root`: Zettelkasten's root folder
 
 - **Optional arguments:**
@@ -142,7 +143,7 @@ done
 
 The execution log is saved to `normalization_zettel.log` in the current directory.
 
-## Note ##
+## Note
 
 This program is mainly designed to fix my Zettelkasten, so if you use it, please test it beforehand to make sure it fits your Zettelkasten well.
 
@@ -173,6 +174,7 @@ You can modify the behavior by editing `src/zettelkasten_normalizer/config.py`:
 The tool supports three front matter formats:
 
 **YAML (default)**
+
 ```yaml
 ---
 title: Note Title
@@ -182,6 +184,7 @@ draft: false
 ```
 
 **TOML**
+
 ```toml
 +++
 title = "Note Title"
@@ -191,6 +194,7 @@ draft = false
 ```
 
 **JSON**
+
 ```json
 {
   "title": "Note Title",
@@ -199,7 +203,7 @@ draft = false
 }
 ```
 
-## Development ##
+## Development
 
 ### Running Tests
 
@@ -217,19 +221,18 @@ pip install -e ".[dev]"
 
 This installs development dependencies including pytest, black, flake8, and mypy.
 
-## Future works (TODO) ##
+## Future works (TODO)
 
 - Windows and Linux support
 - Option to execute only certain functions
-- TOML parsing optimization for older Python versions
 
-## Author ##
+## Author
 
 - [jMatsuzaki](https://jmatsuzaki.com/)
 - [jMatsuzaki Inc.](https://jmatsuzaki.com/company)
 - [@jmatsuzaki](https://twitter.com/jmatsuzaki)
 
-## Preview images ##
+## Preview images
 
 Preview images were taken using:
 
