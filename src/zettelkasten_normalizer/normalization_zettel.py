@@ -39,6 +39,18 @@ def parse_arguments():
         "-f", "--format", choices=["yaml", "toml", "json"], default="yaml",
         help="Front matter format (default: yaml)"
     )
+    parser.add_argument(
+        "--skip-frontmatter", action="store_true",
+        help="Skip front matter processing"
+    )
+    parser.add_argument(
+        "--skip-rename-notes", action="store_true",
+        help="Skip note renaming and link updating"
+    )
+    parser.add_argument(
+        "--skip-rename-images", action="store_true",
+        help="Skip image renaming and link updating"
+    )
     return parser.parse_args()
 
 
@@ -81,7 +93,27 @@ def confirm_execution(args, logger):
     return True
 
 
-def show_function_status(logger, format_type="yaml"):
+def get_execution_functions(args):
+    """Get execution function settings based on command line arguments and config"""
+    # Start with default config settings
+    execution_functions = {
+        "function_create_yfm": EXECUTION_FUNCTION_LIST["function_create_yfm"],
+        "function_rename_notes": EXECUTION_FUNCTION_LIST["function_rename_notes"],
+        "function_rename_images": EXECUTION_FUNCTION_LIST["function_rename_images"],
+    }
+    
+    # Override with command line arguments if specified
+    if args.skip_frontmatter:
+        execution_functions["function_create_yfm"] = False
+    if args.skip_rename_notes:
+        execution_functions["function_rename_notes"] = False
+    if args.skip_rename_images:
+        execution_functions["function_rename_images"] = False
+    
+    return execution_functions
+
+
+def show_function_status(logger, execution_functions, format_type="yaml"):
     """Show which functions are enabled"""
     function_desc = {
         "function_create_yfm": f"- {format_type.upper()} FrontMatter formatting\t\t\t......\t",
@@ -90,8 +122,8 @@ def show_function_status(logger, format_type="yaml"):
     }
     on_off_text = ["ON", "OFF"]
     
-    for key in EXECUTION_FUNCTION_LIST:
-        status = on_off_text[0] if EXECUTION_FUNCTION_LIST[key] else on_off_text[1]
+    for key in execution_functions:
+        status = on_off_text[0] if execution_functions[key] else on_off_text[1]
         logger.info(function_desc[key] + status)
 
 
@@ -109,18 +141,18 @@ def confirm_functions(args, logger):
     return True
 
 
-def execute_normalization(target_path, root_path, logger, format_type="yaml"):
+def execute_normalization(target_path, root_path, logger, execution_functions, format_type="yaml"):
     """Execute the normalization process"""
     # Execute Front Matter processing
-    if EXECUTION_FUNCTION_LIST["function_create_yfm"]:
+    if execution_functions["function_create_yfm"]:
         check_and_create_yfm(get_files(target_path, "note"), format_type)
     
     # Execute note renaming
-    if EXECUTION_FUNCTION_LIST["function_rename_notes"]:
+    if execution_functions["function_rename_notes"]:
         rename_notes_with_links(get_files(target_path, "note"), root_path)
     
     # Execute image renaming
-    if EXECUTION_FUNCTION_LIST["function_rename_images"]:
+    if execution_functions["function_rename_images"]:
         rename_images_with_links(get_files(target_path, "image"), root_path)
 
 
@@ -147,20 +179,23 @@ def main():
     logger.info("Zettelkasten ROOT PATH is: " + root_path)
     logger.info("Normalize TARGET PATH is: " + target_path)
     
+    # Get execution functions based on command line arguments
+    execution_functions = get_execution_functions(args)
+    
     # Confirm execution
     if not confirm_execution(args, logger):
         sys.exit(0)
     
     # Show function status
     logger.debug("Checking the process to be executed")
-    show_function_status(logger, args.format)
+    show_function_status(logger, execution_functions, args.format)
     
     # Confirm functions
     if not confirm_functions(args, logger):
         sys.exit(0)
     
     # Execute normalization
-    execute_normalization(target_path, root_path, logger, args.format)
+    execute_normalization(target_path, root_path, logger, execution_functions, args.format)
     
     # Completion message
     logger.info("All processing is complete!")

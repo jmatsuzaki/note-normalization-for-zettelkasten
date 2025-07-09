@@ -441,7 +441,7 @@ class TestArgumentParsing(unittest.TestCase):
         # sys.argvを一時的に変更
         original_argv = sys.argv
         try:
-            sys.argv = ['normalization_zettel.py', '/test/path', '-t', '/test/target', '-y']
+            sys.argv = ['normalization_zettel.py', '/test/path', '-t', '/test/target', '-y', '-f', 'toml']
             
             # パーサーを再作成
             from zettelkasten_normalizer import normalization_zettel
@@ -451,9 +451,109 @@ class TestArgumentParsing(unittest.TestCase):
             self.assertEqual(args.root, '/test/path')
             self.assertEqual(args.target, '/test/target')
             self.assertTrue(args.yes)
+            self.assertEqual(args.format, 'toml')
+            # デフォルトでは全ての機能が有効（skipオプションがFalse）
+            self.assertFalse(args.skip_frontmatter)
+            self.assertFalse(args.skip_rename_notes)
+            self.assertFalse(args.skip_rename_images)
             
         finally:
             sys.argv = original_argv
+
+    def test_argument_parsing_with_skip_options(self):
+        """スキップオプション付き引数解析のテスト"""
+        original_argv = sys.argv
+        try:
+            sys.argv = ['normalization_zettel.py', '/test/path', '--skip-frontmatter', '--skip-rename-images']
+            
+            from zettelkasten_normalizer import normalization_zettel
+            args = normalization_zettel.parse_arguments()
+            
+            # スキップオプションが正しく解析されることを確認
+            self.assertEqual(args.root, '/test/path')
+            self.assertTrue(args.skip_frontmatter)
+            self.assertFalse(args.skip_rename_notes)  # 指定されていないのでFalse
+            self.assertTrue(args.skip_rename_images)
+            
+        finally:
+            sys.argv = original_argv
+
+    def test_get_execution_functions(self):
+        """実行関数設定のテスト"""
+        from zettelkasten_normalizer import normalization_zettel
+        
+        # モックargs作成
+        class MockArgs:
+            def __init__(self, skip_frontmatter=False, skip_rename_notes=False, skip_rename_images=False):
+                self.skip_frontmatter = skip_frontmatter
+                self.skip_rename_notes = skip_rename_notes
+                self.skip_rename_images = skip_rename_images
+        
+        # デフォルト設定（コマンドライン引数なし）
+        # config.pyのEXECUTION_FUNCTION_LISTがすべてTrueの場合
+        args = MockArgs()
+        execution_functions = normalization_zettel.get_execution_functions(args)
+        self.assertTrue(execution_functions["function_create_yfm"])
+        self.assertTrue(execution_functions["function_rename_notes"])
+        self.assertTrue(execution_functions["function_rename_images"])
+        
+        # フロントマター処理をスキップ（コマンドライン引数で上書き）
+        args = MockArgs(skip_frontmatter=True)
+        execution_functions = normalization_zettel.get_execution_functions(args)
+        self.assertFalse(execution_functions["function_create_yfm"])
+        self.assertTrue(execution_functions["function_rename_notes"])
+        self.assertTrue(execution_functions["function_rename_images"])
+        
+        # ノートリネームと画像リネームをスキップ
+        args = MockArgs(skip_rename_notes=True, skip_rename_images=True)
+        execution_functions = normalization_zettel.get_execution_functions(args)
+        self.assertTrue(execution_functions["function_create_yfm"])
+        self.assertFalse(execution_functions["function_rename_notes"])
+        self.assertFalse(execution_functions["function_rename_images"])
+        
+        # 全機能をスキップ
+        args = MockArgs(skip_frontmatter=True, skip_rename_notes=True, skip_rename_images=True)
+        execution_functions = normalization_zettel.get_execution_functions(args)
+        self.assertFalse(execution_functions["function_create_yfm"])
+        self.assertFalse(execution_functions["function_rename_notes"])
+        self.assertFalse(execution_functions["function_rename_images"])
+
+    def test_get_execution_functions_with_config_override(self):
+        """config設定とコマンドライン引数の組み合わせテスト"""
+        from zettelkasten_normalizer import normalization_zettel, config
+        
+        # 元の設定を保存
+        original_config = config.EXECUTION_FUNCTION_LIST.copy()
+        
+        try:
+            # config.pyで一部機能を無効にした場合
+            config.EXECUTION_FUNCTION_LIST["function_create_yfm"] = False
+            config.EXECUTION_FUNCTION_LIST["function_rename_notes"] = True
+            config.EXECUTION_FUNCTION_LIST["function_rename_images"] = True
+            
+            class MockArgs:
+                def __init__(self, skip_frontmatter=False, skip_rename_notes=False, skip_rename_images=False):
+                    self.skip_frontmatter = skip_frontmatter
+                    self.skip_rename_notes = skip_rename_notes
+                    self.skip_rename_images = skip_rename_images
+            
+            # コマンドライン引数なし（config設定を使用）
+            args = MockArgs()
+            execution_functions = normalization_zettel.get_execution_functions(args)
+            self.assertFalse(execution_functions["function_create_yfm"])  # configでFalse
+            self.assertTrue(execution_functions["function_rename_notes"])  # configでTrue
+            self.assertTrue(execution_functions["function_rename_images"])  # configでTrue
+            
+            # configでFalseだが、コマンドライン引数でさらに別の機能をスキップ
+            args = MockArgs(skip_rename_notes=True)
+            execution_functions = normalization_zettel.get_execution_functions(args)
+            self.assertFalse(execution_functions["function_create_yfm"])  # configでFalse
+            self.assertFalse(execution_functions["function_rename_notes"])  # 引数でFalse
+            self.assertTrue(execution_functions["function_rename_images"])  # configでTrue、引数指定なし
+            
+        finally:
+            # 設定を元に戻す
+            config.EXECUTION_FUNCTION_LIST.update(original_config)
 
 
 class TestFrontMatterParser(unittest.TestCase):

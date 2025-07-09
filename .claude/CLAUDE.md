@@ -50,11 +50,17 @@ python run_normalization.py /path/to/root -f toml
 # Use JSON front matter
 python run_normalization.py /path/to/root -f json
 
+# Skip front matter processing (only rename files)
+python run_normalization.py /path/to/root --skip-frontmatter
+
+# Only process front matter (skip renaming)
+python run_normalization.py /path/to/root --skip-rename-notes --skip-rename-images
+
 # Auto-answer yes to all prompts
 python run_normalization.py /path/to/root -y
 
 # Combine options
-python run_normalization.py /path/to/root -t /path/to/target -f toml -y
+python run_normalization.py /path/to/root -t /path/to/target -f toml --skip-rename-images -y
 ```
 
 ### Git Hook Integration

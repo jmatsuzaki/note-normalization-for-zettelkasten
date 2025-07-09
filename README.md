@@ -108,11 +108,14 @@ python run_normalization.py /path/to/your/zettelkasten_root_folder
   - `-t TARGET, --target TARGET`: Normalization target folder or file
   - `-y, --yes`: Automatically answer yes to all questions
   - `-f FORMAT, --format FORMAT`: Front matter format (yaml, toml, json). Default: yaml
+  - `--skip-frontmatter`: Skip front matter processing
+  - `--skip-rename-notes`: Skip note renaming and link updating
+  - `--skip-rename-images`: Skip image renaming and link updating
 
 ### Examples
 
 ```bash
-# Process entire Zettelkasten (default YAML format)
+# Process entire Zettelkasten (default: all functions enabled, YAML format)
 python run_normalization.py ~/Documents/MyZettelkasten
 
 # Process with TOML front matter
@@ -121,11 +124,20 @@ python run_normalization.py ~/Documents/MyZettelkasten -f toml
 # Process with JSON front matter
 python run_normalization.py ~/Documents/MyZettelkasten -f json
 
-# Process specific file
-python run_normalization.py ~/Documents/MyZettelkasten -t ~/Documents/MyZettelkasten/new-note.md
+# Skip front matter processing (only rename files and update links)
+python run_normalization.py ~/Documents/MyZettelkasten --skip-frontmatter
 
-# Process without confirmation prompts
-python run_normalization.py ~/Documents/MyZettelkasten -y
+# Only process front matter (skip file renaming)
+python run_normalization.py ~/Documents/MyZettelkasten --skip-rename-notes --skip-rename-images
+
+# Skip image renaming but process notes and front matter
+python run_normalization.py ~/Documents/MyZettelkasten --skip-rename-images
+
+# Process specific file without confirmation prompts
+python run_normalization.py ~/Documents/MyZettelkasten -t ~/Documents/MyZettelkasten/new-note.md -y
+
+# Combine multiple options
+python run_normalization.py ~/Documents/MyZettelkasten -f toml --skip-rename-images -y
 ```
 
 ### Git Hook Integration
@@ -164,11 +176,40 @@ This program is mainly designed to fix my Zettelkasten, so if you use it, please
 You can modify the behavior by editing `src/zettelkasten_normalizer/config.py`:
 
 - `FRONT_MATTER_FORMAT`: Default front matter format ("yaml", "toml", "json")
+- `EXECUTION_FUNCTION_LIST`: Default function execution settings
 - `INBOX_DIR`: Folders where files get `draft: true` in front matter
 - `EXCLUDE_DIR`: Folders to skip during processing
 - `EXCLUDE_FILE`: Files to skip during processing
 - `NOTE_EXT`: Supported note file extensions
 - `IMG_EXT`: Supported image extensions
+
+### Function Control Priority
+
+The tool uses the following priority order for function control:
+
+1. **Default**: Configuration in `config.py` (`EXECUTION_FUNCTION_LIST`)
+2. **Override**: Command line arguments (`--skip-*` options)
+
+**Example scenarios:**
+
+```python
+# In config.py
+EXECUTION_FUNCTION_LIST = {
+    "function_create_yfm": False,      # Disabled by default
+    "function_rename_notes": True,     # Enabled by default
+    "function_rename_images": True,    # Enabled by default
+}
+```
+
+```bash
+# No command line options → Uses config settings
+# Result: frontmatter=OFF, rename_notes=ON, rename_images=ON
+python run_normalization.py ~/zettelkasten
+
+# With --skip-rename-notes → Command line overrides config
+# Result: frontmatter=OFF (config), rename_notes=OFF (command), rename_images=ON (config)
+python run_normalization.py ~/zettelkasten --skip-rename-notes
+```
 
 ### Front Matter Formats
 
@@ -233,7 +274,6 @@ This installs development dependencies including pytest, black, flake8, and mypy
 
 ## Future works (TODO)
 
-- Option to execute only certain functions
 - Performance optimizations for large repositories
 
 ## Author

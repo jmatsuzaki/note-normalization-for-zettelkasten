@@ -5,15 +5,15 @@ Configuration settings for Zettelkasten note normalization.
 # Directory and file settings
 INBOX_DIR = [
     "Inbox",
-    "Draft", 
+    "Draft",
     "Pending",
 ]  # The files in this folder will have the YFM draft key set to true
 
 EXCLUDE_DIR = {
-    "Backup", 
-    "Template", 
-    "tmp", 
-    "node_modules"
+    "Backup",
+    "Template",
+    "tmp",
+    "node_modules",
 }  # Folders not to be processed (Hidden folders and files are not covered by default)
 
 EXCLUDE_FILE = {
@@ -43,3 +43,4 @@ EXECUTION_FUNCTION_LIST = {
     "function_rename_notes": True,  # Replace the file name of the note with the UID and replace the linked parts from other notes
     "function_rename_images": True,  # Replace the file name of the image with the UID and replace the linked part from the other note
 }
+
