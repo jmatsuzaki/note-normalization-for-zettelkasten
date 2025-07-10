@@ -8,6 +8,7 @@ import shutil
 import logging
 from .utils import get_file_name, read_file_cross_platform, write_file_cross_platform
 from .file_operations import get_files, check_note_has_uid, get_new_filepath_with_uid
+from .frontmatter_parser import FrontMatterParser
 
 # Get logger
 logger = logging.getLogger(__name__)
@@ -117,13 +118,38 @@ def rename_notes_with_links(files, root_path):
             new_file_path_result = shutil.move(file, new_file_path)
             logger.info("rename done: " + new_file_path_result)
             rename_file_cnt += 1
-            # add UID to top of front matter
-            logger.debug("Insert UID into Front Matter")
+            # add or update UID in front matter
+            logger.debug("Insert or update UID in Front Matter")
             content = read_file_cross_platform(new_file_path_result)
-            lines = content.split('\n')
-            lines.insert(1, "uid: " + uid)
-            modified_content = '\n'.join(lines)
-            write_file_cross_platform(new_file_path_result, modified_content)
+            
+            # Detect front matter format and parse it
+            parser = FrontMatterParser()
+            detected_format = parser.detect_format(content)
+            
+            if detected_format:
+                # Parse existing front matter
+                metadata, body_content = parser.parse_frontmatter(content)
+                if metadata is not None:
+                    # Update or add the uid property
+                    metadata['uid'] = uid
+                    
+                    # Use the detected format to serialize back
+                    parser_with_format = FrontMatterParser(detected_format)
+                    modified_content = parser_with_format.serialize_frontmatter(metadata, body_content)
+                    write_file_cross_platform(new_file_path_result, modified_content)
+                else:
+                    # Failed to parse, fallback to simple insertion
+                    logger.warning(f"Failed to parse frontmatter for {new_file_path_result}, using fallback method")
+                    lines = content.split('\n')
+                    lines.insert(1, "uid: " + uid)
+                    modified_content = '\n'.join(lines)
+                    write_file_cross_platform(new_file_path_result, modified_content)
+            else:
+                # No front matter detected, use original logic
+                lines = content.split('\n')
+                lines.insert(1, "uid: " + uid)
+                modified_content = '\n'.join(lines)
+                write_file_cross_platform(new_file_path_result, modified_content)
             # Replace backlinks
             if substitute_wikilinks_to_markdown_links(file, new_file_path_result, root_path):
                 substitute_file_cnt += 1
