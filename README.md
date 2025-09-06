@@ -1,4 +1,4 @@
-# Note normalization for Zettelkasten #
+# Note normalization for Zettelkasten
 
 Note normalization for Zettelkasten. Add Yaml Front Matter, add UIDs and rename files, replace Wikilink with Markdown link, etc.
 
@@ -6,89 +6,283 @@ Normalizing notes reduces dependence on tools and increases the flexibility and 
 
 1. [Screenshots](#screenshots)
 2. [Features](#features)
-3. [Requirements](#requirements)
-4. [Installation](#installation)
-5. [Usage](#usage)
-6. [Note](#note)
-7. [Future works (TODO)](#future-works-todo)
-8. [Author](#author)
-9. [Preview images](#preview-images)
+3. [Project Structure](#project-structure)
+4. [Requirements](#requirements)
+5. [Installation](#installation)
+6. [Usage](#usage)
+7. [Note](#note)
+8. [Development](#development)
+9. [Future works (TODO)](#future-works-todo)
+10. [Author](#author)
+11. [Preview images](#preview-images)
 
-## Screenshots ##
+## Screenshots
 
 ![Screenshots](img/readme_screenshots.png)
 
-## Features ##
+## Features
 
-- Automatically generate Yaml Front Matter from the note information and insert it into the header
-- Move hashtags to Yaml Front Matter
-- Rename the file to UID
+- Automatically generate Front Matter from the note information and insert it into the header
+- Support for multiple front matter formats: **YAML**, **TOML**, and **JSON**
+- Move hashtags to Front Matter
+- Rename the file to UUID
 - Move the Markdown file to the Zettelkasten's root folder
 - Replace link (filename and folder)
 - Change Wikilinks to Markdown links (with Relative Paths and Extensions)
 - Support for Markdown files and images
 
-## Requirements ##
+## Project Structure
+
+The project follows the standard Python `src` layout:
+
+```
+.
+├── src/
+│   └── zettelkasten_normalizer/
+│       ├── __init__.py
+│       ├── config.py                 # Configuration settings
+│       ├── utils.py                  # Utility functions
+│       ├── file_operations.py        # File discovery and validation
+│       ├── frontmatter_parser.py     # Front matter parsing (YAML/TOML/JSON)
+│       ├── yfm_processor.py          # Front Matter processing
+│       ├── link_processor.py         # Link substitution and file renaming
+│       └── normalization_zettel.py   # Main entry point
+├── tests/
+│   └── test_normalization_zettel.py  # Comprehensive test suite
+├── run_normalization.py              # Command line entry point
+└── setup.py                          # Package configuration
+```
+
+## Requirements
 
 - Python 3.9.1 or above
+- **Cross-platform support**: Windows, macOS, and Linux
 
-## Installation ##
+## Installation
 
 Download or clone this repository.
 
-It only needs normalization_zettel.py to work.
-
-## Usage ##
-
-Just run "normalization_zettel.py" in a shell.
-The first argument is the root folder of Zettelkasten.
-
-```zsh
-python normalization_zettel.py /path/to/your/zettelkasten_root_folder
+```bash
+git clone https://github.com/jmatsuzaki/note-normalization-for-zettelkasten.git
+cd note-normalization-for-zettelkasten
 ```
 
-The following options can be specified.
+### Option 1: Direct Usage (Recommended)
 
-- positional arguments
-  - root: Zettelkasten's root folder
-- optional arguments
-  - -h, --help: show help message and exit
-  - -t TARGET, --target TARGET: normalization target folder or file
-  - -y, --yes: automatically answer yes to all questions
+No installation required. Just use the `run_normalization.py` script directly:
 
-For example, if you put the following in the pre-commit hook of Git Hooks(.git/hooks/pre-commit), you can run this program only on the notes that have changed.
+```bash
+python run_normalization.py /path/to/your/zettelkasten_root_folder
+```
 
-```zsh:.git/hooks/pre-commit
+### Option 2: Install as Package
+
+If you want to install it as a package:
+
+```bash
+pip install -e .
+```
+
+After installation, you can use:
+
+```bash
+zettelkasten-normalizer /path/to/your/zettelkasten_root_folder
+```
+
+## Usage
+
+### Basic Usage
+
+```bash
+python run_normalization.py /path/to/your/zettelkasten_root_folder
+```
+
+### Command Line Options
+
+- **Positional arguments:**
+
+  - `root`: Zettelkasten's root folder
+
+- **Optional arguments:**
+  - `-h, --help`: Show help message and exit
+  - `-t TARGET, --target TARGET`: Normalization target folder or file
+  - `-y, --yes`: Automatically answer yes to all questions
+  - `-f FORMAT, --format FORMAT`: Front matter format (yaml, toml, json). Default: yaml
+  - `--skip-frontmatter`: Skip front matter processing
+  - `--skip-rename-notes`: Skip note renaming and link updating
+  - `--skip-rename-images`: Skip image renaming and link updating
+
+### Examples
+
+```bash
+# Process entire Zettelkasten (default: all functions enabled, YAML format)
+python run_normalization.py ~/Documents/MyZettelkasten
+
+# Process with TOML front matter
+python run_normalization.py ~/Documents/MyZettelkasten -f toml
+
+# Process with JSON front matter
+python run_normalization.py ~/Documents/MyZettelkasten -f json
+
+# Skip front matter processing (only rename files and update links)
+python run_normalization.py ~/Documents/MyZettelkasten --skip-frontmatter
+
+# Only process front matter (skip file renaming)
+python run_normalization.py ~/Documents/MyZettelkasten --skip-rename-notes --skip-rename-images
+
+# Skip image renaming but process notes and front matter
+python run_normalization.py ~/Documents/MyZettelkasten --skip-rename-images
+
+# Process specific file without confirmation prompts
+python run_normalization.py ~/Documents/MyZettelkasten -t ~/Documents/MyZettelkasten/new-note.md -y
+
+# Combine multiple options
+python run_normalization.py ~/Documents/MyZettelkasten -f toml --skip-rename-images -y
+```
+
+### Git Hook Integration
+
+To automatically process changed files, add this to your pre-commit hook (`.git/hooks/pre-commit`):
+
+```bash
+#!/bin/bash
 git diff --cached --name-status | grep -e "^M" -e "^A" | while read a b; do
-  python /foo/bar/normalization_zettel.py /path/to/your/zettelkasten_root_folder -t "$b" -y
+  python /path/to/run_normalization.py /path/to/your/zettelkasten_root_folder -t "$b" -y
   git add "$b"
 done
 ```
 
-The execution log was saved to a log file. please see ./normalization_zettel.log files.
+### Logging
 
-## Note ##
+The execution log is saved to `normalization_zettel.log` in the current directory.
+
+## Note
 
 This program is mainly designed to fix my Zettelkasten, so if you use it, please test it beforehand to make sure it fits your Zettelkasten well.
 
-You can check the results of the program execution in the "debug.log" file in the same folder.
+### Testing Recommendations
 
-It is recommended that you first copy all of your Zettelkasten and test run in the copied folder. Then check the file after the run and make sure the notes are modified as expected in copied folder.
+1. **Test on a Copy First**: Create a copy of your Zettelkasten and test the tool on the copy before running it on your actual data.
 
-It is strongly recommended to back up Zettelkasten using a mechanism such as git, even when running on production data. Not only should you be able to revert to the pre-run data, but you should also be able to see the differences for each file, like in Git diff, and repair them if necessary.
+2. **Check Logs**: Review the execution results in `normalization_zettel.log`.
 
-## Future works (TODO) ##
+3. **Use Version Control**: It is strongly recommended to use Git or another version control system with your Zettelkasten. This allows you to:
+   - Revert changes if needed
+   - Review differences with `git diff`
+   - Repair specific changes if necessary
 
-- Windows and Linux support
-- Toml and json Front Matter support
+### Configuration
 
-## Author ##
+You can modify the behavior by editing `src/zettelkasten_normalizer/config.py`:
+
+- `FRONT_MATTER_FORMAT`: Default front matter format ("yaml", "toml", "json")
+- `EXECUTION_FUNCTION_LIST`: Default function execution settings
+- `INBOX_DIR`: Folders where files get `draft: true` in front matter
+- `EXCLUDE_DIR`: Folders to skip during processing
+- `EXCLUDE_FILE`: Files to skip during processing
+- `NOTE_EXT`: Supported note file extensions
+- `IMG_EXT`: Supported image extensions
+
+### Function Control Priority
+
+The tool uses the following priority order for function control:
+
+1. **Default**: Configuration in `config.py` (`EXECUTION_FUNCTION_LIST`)
+2. **Override**: Command line arguments (`--skip-*` options)
+
+**Example scenarios:**
+
+```python
+# In config.py
+EXECUTION_FUNCTION_LIST = {
+    "function_create_yfm": False,      # Disabled by default
+    "function_rename_notes": True,     # Enabled by default
+    "function_rename_images": True,    # Enabled by default
+}
+```
+
+```bash
+# No command line options → Uses config settings
+# Result: frontmatter=OFF, rename_notes=ON, rename_images=ON
+python run_normalization.py ~/zettelkasten
+
+# With --skip-rename-notes → Command line overrides config
+# Result: frontmatter=OFF (config), rename_notes=OFF (command), rename_images=ON (config)
+python run_normalization.py ~/zettelkasten --skip-rename-notes
+```
+
+### Front Matter Formats
+
+The tool supports three front matter formats:
+
+**YAML (default)**
+
+```yaml
+---
+title: Note Title
+tags: [tag1, tag2]
+draft: false
+---
+```
+
+**TOML**
+
+```toml
++++
+title = "Note Title"
+tags = ["tag1", "tag2"]
+draft = false
++++
+```
+
+**JSON**
+
+```json
+{
+  "title": "Note Title",
+  "tags": ["tag1", "tag2"],
+  "draft": false
+}
+```
+
+### Cross-Platform Compatibility
+
+The tool handles cross-platform compatibility automatically:
+
+- **Line Endings**: Automatically normalizes different line ending styles (CRLF, LF, CR)
+- **Path Separators**: Uses appropriate path separators for each platform
+- **Character Encoding**: Supports UTF-8 encoding with fallback handling
+- **File Operations**: Cross-platform file reading and writing with proper encoding
+
+## Development
+
+### Running Tests
+
+```bash
+python -m pytest tests/
+# or
+python tests/test_normalization_zettel.py
+```
+
+### Development Installation
+
+```bash
+pip install -e ".[dev]"
+```
+
+This installs development dependencies including pytest, black, flake8, and mypy.
+
+## Future works (TODO)
+
+- Performance optimizations for large repositories
+
+## Author
 
 - [jMatsuzaki](https://jmatsuzaki.com/)
 - [jMatsuzaki Inc.](https://jmatsuzaki.com/company)
 - [@jmatsuzaki](https://twitter.com/jmatsuzaki)
 
-## Preview images ##
+## Preview images
 
 Preview images were taken using:
 
