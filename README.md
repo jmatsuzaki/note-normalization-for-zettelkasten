@@ -195,7 +195,7 @@ The tool uses the following priority order for function control:
 ```python
 # In config.py
 EXECUTION_FUNCTION_LIST = {
-    "function_create_yfm": False,      # Disabled by default
+    "function_create_yfm": True,      # Enabled by default
     "function_rename_notes": True,     # Enabled by default
     "function_rename_images": True,    # Enabled by default
 }

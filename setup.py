@@ -9,6 +9,7 @@ import os
 # Read version from __init__.py
 here = os.path.abspath(os.path.dirname(__file__))
 init_path = os.path.join(here, 'src', 'zettelkasten_normalizer', '__init__.py')
+version = "0.0.0"  # Default version if not found
 with open(init_path, 'r', encoding='utf-8') as f:
     for line in f:
         if line.startswith('__version__'):

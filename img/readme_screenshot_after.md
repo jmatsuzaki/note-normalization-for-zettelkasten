@@ -1,0 +1,44 @@
+---
+uid: 9787f826661647389d0ed859f9945d7d
+title: readme_screenshot_after
+aliases: []
+date: 2025-09-07 05:40:19
+update: 2025-09-07 05:41:42
+tags: [hashtag1, hashtag2, hashtag3]
+draft: false
+---
+
+Front Matter will be added to the beginning of the file.
+
+## Adding Yaml Front Matter
+
+All headings and body text will be retained, including line breaks and text decoration.
+
+Note files in subdirectories will be moved to the Root directory (excluding image files).
+
+The note in the Inbox will be `draft: true` in Yaml Front Matter. The default is `draft: false`.
+
+## Replace file name and links
+
+The file name of all notes and images will be replaced by the UUID (41239e884b89465aa206a1cbc24e7166.md).
+
+And the link will be replaced. Wikilink will be replaced by Markdown link. The link text will retain
+the original text; if an Alias is set, the Alias will be adopted as the link text. As shown below:
+
+[linked_file](linked_file.md)
+[alias text](linked_file_with_alias.md)
+![image_link.png](image_link.png.md)
+
+Markdown link will only replace the link to the note.
+
+[markdown_link](markdown_link.md)
+
+## Moving Hashtags
+
+### All hashtags to Yaml Front Matter
+
+All headings will remain intact. Headlines are not considered hashtags.
+
+The hashtag will be moved to Yaml Front Matter and the original hashtag will have its line removed.
+
+tags: #hashtag1 #hashtag2 #hashtag3

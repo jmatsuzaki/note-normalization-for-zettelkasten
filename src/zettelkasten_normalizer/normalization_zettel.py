@@ -20,7 +20,7 @@ from .config import EXECUTION_FUNCTION_LIST
 from .utils import setup_logger, query_yes_no
 from .file_operations import get_files
 from .yfm_processor import check_and_create_yfm
-from .link_processor import rename_notes_with_links, rename_images_with_links
+from .link_processor import rename_notes_with_links, rename_images_with_links, convert_wikilinks_to_markdown
 
 
 def parse_arguments():
@@ -50,6 +50,10 @@ def parse_arguments():
     parser.add_argument(
         "--skip-rename-images", action="store_true",
         help="Skip image renaming and link updating"
+    )
+    parser.add_argument(
+        "--skip-wikilinks", action="store_true",
+        help="Skip WikiLinks to Markdown links conversion"
     )
     return parser.parse_args()
 
@@ -100,6 +104,7 @@ def get_execution_functions(args):
         "function_create_yfm": EXECUTION_FUNCTION_LIST["function_create_yfm"],
         "function_rename_notes": EXECUTION_FUNCTION_LIST["function_rename_notes"],
         "function_rename_images": EXECUTION_FUNCTION_LIST["function_rename_images"],
+        "function_convert_wikilinks": EXECUTION_FUNCTION_LIST.get("function_convert_wikilinks", True),  # Default from config
     }
     
     # Override with command line arguments if specified
@@ -109,6 +114,8 @@ def get_execution_functions(args):
         execution_functions["function_rename_notes"] = False
     if args.skip_rename_images:
         execution_functions["function_rename_images"] = False
+    if hasattr(args, 'skip_wikilinks') and args.skip_wikilinks:
+        execution_functions["function_convert_wikilinks"] = False
     
     return execution_functions
 
@@ -119,12 +126,14 @@ def show_function_status(logger, execution_functions, format_type="yaml"):
         "function_create_yfm": f"- {format_type.upper()} FrontMatter formatting\t\t\t......\t",
         "function_rename_notes": "- Rename the note to UID and update the link\t.......\t",
         "function_rename_images": "- Rename the image to UID and update the link\t.......\t",
+        "function_convert_wikilinks": "- Convert WikiLinks to Markdown links\t\t.......\t",
     }
     on_off_text = ["ON", "OFF"]
     
     for key in execution_functions:
-        status = on_off_text[0] if execution_functions[key] else on_off_text[1]
-        logger.info(function_desc[key] + status)
+        if key in function_desc:
+            status = on_off_text[0] if execution_functions[key] else on_off_text[1]
+            logger.info(function_desc[key] + status)
 
 
 def confirm_functions(args, logger):
@@ -146,6 +155,10 @@ def execute_normalization(target_path, root_path, logger, execution_functions, f
     # Execute Front Matter processing
     if execution_functions["function_create_yfm"]:
         check_and_create_yfm(get_files(target_path, "note"), format_type)
+    
+    # Execute WikiLinks conversion
+    if execution_functions.get("function_convert_wikilinks", False):
+        convert_wikilinks_to_markdown(get_files(target_path, "note"), root_path)
     
     # Execute note renaming
     if execution_functions["function_rename_notes"]:
