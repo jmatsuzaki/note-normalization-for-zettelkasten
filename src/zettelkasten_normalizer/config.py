@@ -26,6 +26,7 @@ IMG_EXT = [".png", ".jpg", ".jpeg", ".svg", ".gif"]  # image file extension
 
 # YFM default settings
 YFM = {
+    "uid": "",  # It will be replaced by the uuid
     "title": "",  # It will be replaced by the file name
     "aliases": "[]",
     "date": "",  # Replaced by the file creation date
@@ -42,5 +43,5 @@ EXECUTION_FUNCTION_LIST = {
     "function_create_yfm": True,  # If there is no Yaml FrontMatter at the beginning of the note, it will be generated
     "function_rename_notes": True,  # Replace the file name of the note with the UID and replace the linked parts from other notes
     "function_rename_images": True,  # Replace the file name of the image with the UID and replace the linked part from the other note
+    "function_convert_wikilinks": True,  # Convert WikiLinks [[link]] to Markdown links [link](link.md)
 }
-

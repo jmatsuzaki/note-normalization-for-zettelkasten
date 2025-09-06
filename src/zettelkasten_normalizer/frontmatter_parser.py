@@ -197,40 +197,110 @@ class FrontMatterParser:
     def _serialize_yaml(self, metadata: Dict, content: str) -> str:
         """Serialize to YAML format."""
         yaml_lines = ["---"]
+        
+        # Define the order of fields
+        field_order = ["uid", "title", "aliases", "date", "update", "tags", "draft"]
+        
+        # Add fields in the specified order
+        for key in field_order:
+            if key in metadata:
+                value = metadata[key]
+                if isinstance(value, str) and (value.startswith('[') or ' ' in value):
+                    yaml_lines.append(f"{key}: {value}")
+                else:
+                    yaml_lines.append(f"{key}: {value}")
+        
+        # Add any remaining fields not in the order list
         for key, value in metadata.items():
-            if isinstance(value, str) and (value.startswith('[') or ' ' in value):
-                yaml_lines.append(f"{key}: {value}")
-            else:
-                yaml_lines.append(f"{key}: {value}")
+            if key not in field_order:
+                if isinstance(value, str) and (value.startswith('[') or ' ' in value):
+                    yaml_lines.append(f"{key}: {value}")
+                else:
+                    yaml_lines.append(f"{key}: {value}")
+        
         yaml_lines.append("---")
         yaml_lines.append("")  # Empty line after front matter
         
-        return '\n'.join(yaml_lines) + content
+        # Join frontmatter lines and ensure blank line before content
+        frontmatter = '\n'.join(yaml_lines)
+        
+        # Ensure content doesn't start with extra newlines
+        if content:
+            content = content.lstrip('\n')
+            return frontmatter + '\n' + content
+        else:
+            return frontmatter
     
     def _serialize_toml(self, metadata: Dict, content: str) -> str:
         """Serialize to TOML format."""
         toml_lines = ["+++"]
-        for key, value in metadata.items():
-            if isinstance(value, str):
-                # Handle arrays and strings
-                if value.startswith('[') and value.endswith(']'):
-                    toml_lines.append(f"{key} = {value}")
-                elif value in ['true', 'false']:
-                    toml_lines.append(f"{key} = {value}")
+        
+        # Define the order of fields
+        field_order = ["uid", "title", "aliases", "date", "update", "tags", "draft"]
+        
+        # Add fields in the specified order
+        for key in field_order:
+            if key in metadata:
+                value = metadata[key]
+                if isinstance(value, str):
+                    # Handle arrays and strings
+                    if value.startswith('[') and value.endswith(']'):
+                        toml_lines.append(f"{key} = {value}")
+                    elif value in ['true', 'false']:
+                        toml_lines.append(f"{key} = {value}")
+                    else:
+                        toml_lines.append(f'{key} = "{value}"')
                 else:
-                    toml_lines.append(f'{key} = "{value}"')
-            else:
-                toml_lines.append(f"{key} = {json.dumps(value)}")
+                    toml_lines.append(f"{key} = {json.dumps(value)}")
+        
+        # Add any remaining fields not in the order list
+        for key, value in metadata.items():
+            if key not in field_order:
+                if isinstance(value, str):
+                    # Handle arrays and strings
+                    if value.startswith('[') and value.endswith(']'):
+                        toml_lines.append(f"{key} = {value}")
+                    elif value in ['true', 'false']:
+                        toml_lines.append(f"{key} = {value}")
+                    else:
+                        toml_lines.append(f'{key} = "{value}"')
+                else:
+                    toml_lines.append(f"{key} = {json.dumps(value)}")
+        
         toml_lines.append("+++")
         toml_lines.append("")  # Empty line after front matter
         
-        return '\n'.join(toml_lines) + content
+        # Join frontmatter lines and ensure blank line before content
+        frontmatter = '\n'.join(toml_lines)
+        
+        # Ensure content doesn't start with extra newlines
+        if content:
+            content = content.lstrip('\n')
+            return frontmatter + '\n' + content
+        else:
+            return frontmatter
     
     def _serialize_json(self, metadata: Dict, content: str) -> str:
         """Serialize to JSON format."""
+        # Define the order of fields
+        field_order = ["uid", "title", "aliases", "date", "update", "tags", "draft"]
+        
+        # Create ordered metadata
+        ordered_metadata = {}
+        
+        # Add fields in the specified order
+        for key in field_order:
+            if key in metadata:
+                ordered_metadata[key] = metadata[key]
+        
+        # Add any remaining fields
+        for key, value in metadata.items():
+            if key not in field_order:
+                ordered_metadata[key] = value
+        
         # Convert string representations of arrays/booleans to proper types
         converted_metadata = {}
-        for key, value in metadata.items():
+        for key, value in ordered_metadata.items():
             if isinstance(value, str):
                 if value.startswith('[') and value.endswith(']'):
                     try:
@@ -247,7 +317,11 @@ class FrontMatterParser:
                 converted_metadata[key] = value
         
         json_str = json.dumps(converted_metadata, indent=2, ensure_ascii=False)
-        return json_str + "\n\n" + content
+        # Ensure content doesn't start with extra newlines
+        if content and not content.startswith('\n'):
+            return json_str + "\n\n" + content
+        else:
+            return json_str + "\n\n" + content.lstrip('\n')
 
 
 def get_frontmatter_delimiters(format_type: str) -> Tuple[str, str]:

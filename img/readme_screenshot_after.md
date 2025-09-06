@@ -1,9 +1,9 @@
 ---
-uid: ef8c96ea71c14747b318e220ae050d03
-title: readme_screenshots-after
+uid: 9787f826661647389d0ed859f9945d7d
+title: readme_screenshot_after
 aliases: []
-date: 2025-09-07 03:29:49
-update: 2025-09-07 03:29:49
+date: 2025-09-07 05:40:19
+update: 2025-09-07 05:41:42
 tags: [hashtag1, hashtag2, hashtag3]
 draft: false
 ---
@@ -20,14 +20,14 @@ The note in the Inbox will be `draft: true` in Yaml Front Matter. The default is
 
 ## Replace file name and links
 
-The file name of all notes and images will be replaced by the UID (yyyyMMddhhmmss.md).
+The file name of all notes and images will be replaced by the UUID (41239e884b89465aa206a1cbc24e7166.md).
 
 And the link will be replaced. Wikilink will be replaced by Markdown link. The link text will retain
 the original text; if an Alias is set, the Alias will be adopted as the link text. As shown below:
 
-[[linked_file]]
-[[linked_file_with_alias | alias text]]
-![[image_link.png]]
+[linked_file](linked_file.md)
+[alias text](linked_file_with_alias.md)
+![image_link.png](image_link.png.md)
 
 Markdown link will only replace the link to the note.
 
@@ -40,3 +40,5 @@ Markdown link will only replace the link to the note.
 All headings will remain intact. Headlines are not considered hashtags.
 
 The hashtag will be moved to Yaml Front Matter and the original hashtag will have its line removed.
+
+tags: #hashtag1 #hashtag2 #hashtag3

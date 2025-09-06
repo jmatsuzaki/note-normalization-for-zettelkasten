@@ -35,8 +35,16 @@ def writing_lines_without_hashtags(target, lines):
     
     logger.debug("writing file...")
     content_lines = []
-    for line in lines:
-        # Delete the hashtag line
+    frontmatter_end_found = False
+    
+    for i, line in enumerate(lines):
+        # Check if this is the closing frontmatter delimiter
+        if not frontmatter_end_found and line.strip() in ['---', '+++', '}']:
+            # Check if the next line would be the empty line after frontmatter
+            if i + 1 < len(lines) and i > 0:
+                frontmatter_end_found = True
+        
+        # Delete the hashtag line (but preserve the line after frontmatter)
         if not re.match("^\#[^\#|^\s].+", line):
             content_lines.append(line)
     
@@ -123,6 +131,14 @@ def _update_existing_yfm(update_yfm_files, parser):
             
             # Check for missing fields and update
             update_flg = False
+            
+            # Generate uid if not present
+            import hashlib
+            if "uid" not in metadata:
+                file_hash = hashlib.md5(update_yfm_file.encode()).hexdigest()
+                metadata["uid"] = file_hash
+                update_flg = True
+            
             required_fields = {
                 "title": get_file_name(update_yfm_file)[1],
                 "aliases": "[]",
@@ -152,9 +168,37 @@ def _update_existing_yfm(update_yfm_files, parser):
                 # Regenerate content with updated metadata
                 updated_content = parser.serialize_frontmatter(metadata, body_content)
                 
-                # Remove hashtag lines from body
+                # Remove hashtag lines from body while preserving frontmatter format
                 lines = updated_content.split('\n')
-                writing_lines_without_hashtags(update_yfm_file, lines)
+                
+                # Find where frontmatter ends
+                frontmatter_end_idx = -1
+                for i, line in enumerate(lines):
+                    if i > 0 and line.strip() == '---':  # Found closing delimiter
+                        frontmatter_end_idx = i
+                        break
+                
+                # Process only the content after frontmatter for hashtag removal
+                if frontmatter_end_idx > 0:
+                    frontmatter_lines = lines[:frontmatter_end_idx + 2]  # Include the blank line
+                    content_lines = lines[frontmatter_end_idx + 2:]
+                    
+                    # Remove hashtag lines from content only
+                    filtered_content = []
+                    for line in content_lines:
+                        if not re.match("^\#[^\#|^\s].+", line):
+                            filtered_content.append(line)
+                    
+                    # Combine frontmatter with filtered content
+                    final_lines = frontmatter_lines + filtered_content
+                    final_content = '\n'.join(final_lines)
+                    
+                    # Write the final content
+                    final_content = final_content.rstrip('\n') + '\n'
+                    write_file_cross_platform(update_yfm_file, final_content)
+                else:
+                    # Fallback to original behavior if no frontmatter found
+                    writing_lines_without_hashtags(update_yfm_file, lines)
                 
                 processing_file_cnt += 1
                 logger.debug("Updated Front Matter!")
@@ -191,8 +235,17 @@ def _create_new_yfm(create_yfm_files, parser):
             
             logger.debug("insert Front Matter...")
             
-            # Create metadata dictionary
+            # Create metadata dictionary with uid first
+            # Generate a uid from the filename (will be updated if file is renamed)
+            from .utils import format_uid_from_date
+            from .file_operations import get_file_name
+            import hashlib
+            
+            # Generate a unique uid based on file path
+            file_hash = hashlib.md5(create_yfm_file.encode()).hexdigest()
+            
             metadata = {
+                "uid": file_hash,
                 "title": get_file_name(create_yfm_file)[1],
                 "aliases": "[]",
                 "date": format_date(get_creation_date(create_yfm_file)),
@@ -204,9 +257,38 @@ def _create_new_yfm(create_yfm_files, parser):
             # Serialize front matter with content
             updated_content = parser.serialize_frontmatter(metadata, content)
             
-            # Remove hashtag lines from body
+            # Remove hashtag lines from body while preserving frontmatter format
             lines = updated_content.split('\n')
-            writing_lines_without_hashtags(create_yfm_file, lines)
+            
+            # Find where frontmatter ends
+            frontmatter_end_idx = -1
+            for i, line in enumerate(lines):
+                if i > 0 and line.strip() == '---':  # Found closing delimiter
+                    frontmatter_end_idx = i
+                    break
+            
+            # Process only the content after frontmatter for hashtag removal
+            if frontmatter_end_idx > 0:
+                frontmatter_lines = lines[:frontmatter_end_idx + 2]  # Include the blank line
+                content_lines = lines[frontmatter_end_idx + 2:]
+                
+                # Remove hashtag lines from content only
+                filtered_content = []
+                for line in content_lines:
+                    if not re.match("^\#[^\#|^\s].+", line):
+                        filtered_content.append(line)
+                
+                # Combine frontmatter with filtered content
+                final_lines = frontmatter_lines + filtered_content
+                final_content = '\n'.join(final_lines)
+            else:
+                # Fallback to original behavior if no frontmatter found
+                writing_lines_without_hashtags(create_yfm_file, lines)
+                continue
+            
+            # Write the final content
+            final_content = final_content.rstrip('\n') + '\n'
+            write_file_cross_platform(create_yfm_file, final_content)
             
             processing_file_cnt += 1  # Counting the number of files processed
             logger.debug(f"Created {parser.format_type.upper()} Front Matter")
