@@ -2,8 +2,6 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**重要**: 日本語で回答してください。
-
 ## Overview
 
 This is a modular Python tool for normalizing Markdown notes for Zettelkasten systems. The tool processes notes to add front matter (YAML, TOML, or JSON), rename files with UIDs, and convert WikiLinks to Markdown links.
@@ -124,15 +122,16 @@ done
 ## Testing
 
 The tool includes a comprehensive test suite with automated tests covering:
+
 - Cross-platform compatibility (line endings, file operations)
 - Multiple front matter formats (YAML, TOML, JSON)
 - Unicode handling and file encoding
 - All core functionality modules
 
 Run tests with:
+
 ```bash
 python tests/test_normalization_zettel.py
 ```
 
 It's still recommended to test on a copy of your Zettelkasten before running on production data.
-
